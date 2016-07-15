@@ -1,9 +1,8 @@
 #include <Arduino.h>
-#include <SPI.h>
-
+#include <Display.h>
 
 // LED Arrangement
-#include "Led.h"
+#include <Led.h>
 
 Led *Leds; // = {13, 29, 28};
 const int LED_BOARD = 0; // Pin 13 (on board)
@@ -15,24 +14,9 @@ void maintainLeds();
 void setupLeds();
 
 
-// TFT Hardware; requires SPI
-#include <Adafruit_GFX.h>
-#include <Adafruit_ST7735.h>
-
-#define SPI_SCK    14
-#define TFT_CS     15
-#define TFT_RST    16
-#define TFT_DC     17
 #define TFT_LITE   20 // PWM backlight/brightness control
 
-Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS,  TFT_DC, TFT_RST);
-
-// Global Screen State
-int brightness = 0xFE;
-
-void setupTft();
-void tftWelcome();
-void maintainTft();
+Display display = Display();
 
 #include <Encoder.h>
 
@@ -40,11 +24,10 @@ void maintainTft();
 #define ENC_A      22
 #define ENC_B      23
 
+// Note the 2000millis delay during constructor!
 Encoder rotary(ENC_A, ENC_B);
 
-long previousValue = 0;
-
-void maintainKnob();
+void maintainRotary();
 
 // Each Led needs a `tick` to flash behaviour maintenance
 void maintainLeds() {
@@ -69,13 +52,16 @@ void setup() {
 
     Serial.begin(19200);  // USB, communication to PC or Mac
 
-    setupTft();
+    display.setupBrightness(TFT_LITE);
 
     // Waits until USB is connected
-    while(!Serial)
+    while(!Serial) {
         maintainLeds();
+        delay(20);
+    }
 
-    tftWelcome();
+    display.splash();
+
     Serial.println("Connected.");
 
     Leds[LED_BOARD].off();
@@ -84,58 +70,19 @@ void setup() {
 
 void loop() {
     maintainLeds();
-    maintainKnob();
-    maintainTft();
+    maintainRotary();
+    display.maintain();
 }
 
+int32_t previousValue;
 
-
-void setupTft() {
-    SPI.setSCK(SPI_SCK);
-
-    // Use this initializer (uncomment) if you're using a 1.44" TFT
-    tft.initR(INITR_144GREENTAB);   // initialize a ST7735S chip, green tab
-    tft.fillScreen(ST7735_BLACK);
-
-    pinMode(TFT_LITE, OUTPUT);
-    analogWrite(TFT_LITE, brightness);
-}
-
-void tftWelcome() {
-    tft.setTextWrap(false);
-    tft.fillScreen(ST7735_BLACK);
-    tft.setCursor(0, 30);
-    tft.setTextColor(ST7735_YELLOW);
-    tft.setTextSize(2);
-    tft.println("DigiHead");
-}
-
-void maintainTft() {
-
-}
-
-
-void maintainKnob() {
-    long value;
+void maintainRotary() {
+    int32_t value;
     value = rotary.read();
     if (value != previousValue) {
-        brightness += (previousValue - value) * (1 + (int)(brightness * 0.075));
-        if (brightness > 0xFE) {
-            brightness = 0xFE;
-            Leds[LED_BOARD].flash();
-        } else if (brightness < 0) {
-            brightness = 0;
-            Leds[LED_RED].flash();
-        }
-        Serial.print("Knob: value=");
-        Serial.print(value, DEC);
-        Serial.print(" delta=");
-        Serial.print(previousValue - value);
-        Serial.print(" brightness=");
-        Serial.println(brightness, DEC);
+        int16_t delta = (int16_t) (previousValue - value);
+        display.changeBrightness(delta);
+//        Serial.printf("Rotary: previousValue=%ld value=%ld, delta=%d\n", previousValue, value, delta);
         previousValue = value;
-        // TODO: change to setting TFT 'update-backlight' flag for next screen maintenance cycle
-        analogWrite(TFT_LITE, brightness);
-//        manager.updateBrightness(brightness);
     }
 }
