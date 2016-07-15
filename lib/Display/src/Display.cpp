@@ -16,7 +16,7 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
     _brightnessPWM = 0;
 
     _tft->initR(INITR_144GREENTAB);   // initialize a ST7735S chip, green tab
-    _tft->fillScreen(ST7735_BLACK);
+    _tft->fillScreen(DISPLAY_BACKGROUND);
 }
 
 
@@ -27,11 +27,20 @@ void Display::setupBrightness(int8_t pwm) {
     _brightness = 128;
     _brightnessPWM = pwm;
     pinMode(_brightnessPWM, OUTPUT);
+
+    _brightnessBar = {new TFTBar()};
+    _brightnessBar->colour = ST7735_BLUE;
+    uint16_t inset = 2;
+    _brightnessBar->x0 = inset;
+    _brightnessBar->maxWidth = _tft->width() - (2 * inset);
+    _brightnessBar->height = 14;
+    _brightnessBar->y0 = _tft->height() - _brightnessBar->height - inset;
+
     setBrightness(_brightness);
 }
 
 void Display::changeBrightness(int16_t delta) {
-    // Scale change in brightness based on current value
+    // TODO: Scale change in brightness based on current value
     // Small LED PWM changes are not noticeable close to 100% duty
     int16_t newBrightness = delta * 2 + ((int16_t )_brightness);
 //    Serial.println(newBrightness, HEX);
@@ -72,27 +81,7 @@ void Display::maintain() {
     uint32_t now = millis();
     if (now - _tftUpdate->lastUpdate > DISPLAY_INTERVAL_UPDATE) {
         if (_tftUpdate->brightness) {
-
-            // Draw brightness bar (bottom of screen)
-            int16_t y = _tft->height() - 2;
-            // Full width black first
-            int16_t full_width = _tft->width() - 2;
-            _tft->drawLine(1, y, full_width, y, ST7735_BLACK);
-
-            // Then brightness width in blue
-            double fraction = _brightness;
-            fraction /= 255;
-            fraction *= full_width;
-//            Serial.println(fraction, 3);
-            int16_t w = (int16_t)(fraction + 0.5);
-            _tft->drawLine(1, y, w, y, ST7735_BLUE);
-
-            // Dump to screen for debug
-//            _tft->setCursor(60, 55);
-//            _tft->setTextColor(ST7735_CYAN);
-//            _tft->fillRect(60, 55, 50, 20, ST7735_BLACK);
-//            _tft->print(_brightness);
-
+            _modeDrawBrightness();
             _tftUpdate->brightness = false;
         }
         _tftUpdate->lastUpdate = now;
@@ -106,4 +95,27 @@ void Display::splash() {
     _tft->setTextColor(ST7735_YELLOW);
     _tft->setTextSize(2);
     _tft->println("DigiHead");
+}
+
+void Display::_modeDrawBrightness() {
+    // Render a bar for brightness
+    TFTBar* bar = _brightnessBar;
+
+    double fraction = _brightness;
+    fraction /= 255;
+    fraction *= bar->maxWidth;
+//            Serial.println(fraction, 3);
+    int16_t w = (int16_t)(fraction + 0.5);
+
+    int16_t maxHeight = bar->y0 + bar->height;
+
+    // Blackout
+    for (int16_t y = bar->y0; y < maxHeight; y++) {
+        _tft->drawFastHLine(bar->x0 + w, y, bar->x0 + bar->maxWidth, DISPLAY_BACKGROUND);
+    }
+
+    // Partial bar
+    for (int16_t y = bar->y0; y < maxHeight; y++) {
+        _tft->drawFastHLine(bar->x0, y, w, bar->colour);
+    }
 }

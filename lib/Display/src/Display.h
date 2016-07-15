@@ -13,6 +13,21 @@ typedef struct {
     bool time;
 } TFTUpdate;
 
+typedef struct {
+    uint8_t mode; // Current mode to render
+    uint8_t nextMode; // Change to this mode next
+    uint32_t nextWhen; // After this millis has been reached
+} TFTPager;
+
+typedef struct {
+    uint16_t x0;
+    uint16_t y0;
+    uint16_t height;
+    uint16_t width;
+    uint16_t maxWidth;
+    uint16_t colour;
+} TFTBar;
+
 // TFT Hardware; requires SPI
 // https://www.adafruit.com/products/358
 
@@ -34,10 +49,15 @@ private:
     void _setBrightness(uint8_t b);
     uint8_t   _brightnessPWM;
     uint8_t   _brightness;
+    TFTBar*   _brightnessBar;
+
+    void _modeDrawBrightness();
 };
 
 // Update interval
 
-#define DISPLAY_INTERVAL_UPDATE 200
+#define DISPLAY_INTERVAL_UPDATE 50
+
+#define DISPLAY_BACKGROUND ST7735_BLACK
 
 #endif //DIGIHEAD_DISPLAY_H
