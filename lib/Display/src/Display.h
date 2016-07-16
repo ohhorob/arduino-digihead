@@ -5,11 +5,13 @@
 #include <Adafruit_ST7735.h>
 #include <Adafruit_GFX.h>
 #include <SPI.h>
+#include <RingBuffer.h>
 
 // Global Screen State
 typedef struct {
     uint32_t lastUpdate;
     bool needsUpdate;
+    bool needsBackground;
     bool brightness;
     bool time;
     bool menu;
@@ -43,6 +45,8 @@ public:
     void setupBrightness(int8_t pwm=20);
     void changeBrightness(int16_t delta);
     void setBrightness(int16_t b=128);
+    void setupVolts(RingBuffer *buffer, uint32_t max);
+    void voltsReady(bool ready);
 
     void splash();
 
@@ -57,8 +61,15 @@ private:
     uint8_t   _brightness;
     TFTBar*   _brightnessBar;
 
+    RingBuffer *_voltBuffer;
+    uint32_t    _maxVolts;
+    TFTBar*     _voltsBar;
+
     void _modeDrawBrightness();
     void _modeDrawMenu();
+    void _modeDrawVolts();
+
+    void _renderBar(TFTBar *bar, double fraction);
 };
 
 // Update interval

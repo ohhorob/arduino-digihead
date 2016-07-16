@@ -13,6 +13,7 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
     _tftUpdate->time = false;
     _tftUpdate->lastUpdate = 0;
     _tftUpdate->needsUpdate = true;
+    _tftUpdate->needsBackground = true;
 
     _pager = {new TFTPager()};
     _pager->mode = 0x00; // Splash/Welcome
@@ -21,6 +22,8 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
     _pager->changeModeOnDirection = false;
 
     _brightnessPWM = 0;
+
+    _voltBuffer = 0;
 
     _tft->initR(INITR_144GREENTAB);   // initialize a ST7735S chip, green tab
     _tft->fillScreen(DISPLAY_BACKGROUND);
@@ -41,7 +44,7 @@ void Display::setupBrightness(int8_t pwm) {
 
     _brightnessBar = {new TFTBar()};
     _brightnessBar->colour = ST7735_BLUE;
-    uint16_t inset = 2;
+    uint16_t inset = 3;
     _brightnessBar->x0 = inset;
     _brightnessBar->maxWidth = _tft->width() - (2 * inset);
     _brightnessBar->height = 14;
@@ -157,6 +160,7 @@ void Display::maintain() {
         _pager->mode = _pager->nextMode;
         _pager->nextWhen = 0;
         _tftUpdate->needsUpdate = true;
+        _tftUpdate->needsBackground = true;
         Serial.print("maintain: changed mode to "); Serial.println(_pager->mode, HEX);
     }
 
@@ -170,6 +174,9 @@ void Display::maintain() {
                     break;
                 case 0x01: // Menu
                     _modeDrawMenu();
+                    break;
+                case 0x02: // Volts
+                    _modeDrawVolts();
                     break;
                 default: // Hmmm.. not sure
                     _tft->fillScreen(DISPLAY_BACKGROUND);
@@ -209,27 +216,90 @@ void Display::splash() {
 void Display::_modeDrawBrightness() {
     // Render a bar for brightness
     TFTBar* bar = _brightnessBar;
-
+    uint8_t maxBrightness = 255;
     double fraction = _brightness;
-    fraction /= 255;
-    fraction *= bar->maxWidth;
-//            Serial.println(fraction, 3);
-    int16_t w = (int16_t)(fraction + 0.5);
-
-    int16_t maxHeight = bar->y0 + bar->height;
-
-    // Blackout
-    for (int16_t y = bar->y0; y < maxHeight; y++) {
-        _tft->drawFastHLine(bar->x0 + w, y, bar->x0 + bar->maxWidth, DISPLAY_BACKGROUND);
-    }
-
-    // Partial bar
-    for (int16_t y = bar->y0; y < maxHeight; y++) {
-        _tft->drawFastHLine(bar->x0, y, w, bar->colour);
-    }
+    fraction /= maxBrightness;
+    _renderBar(_brightnessBar, fraction);
 }
 
 void Display::_modeDrawMenu() {
     _tft->fillScreen(DISPLAY_BACKGROUND);
     _tft->drawRect(2, 2, _tft->width()-4, _tft->height()-4, ST7735_CYAN);
+}
+
+void Display::setupVolts(RingBuffer *buffer, uint32_t max) {
+    _voltBuffer = buffer;
+    _maxVolts = max;
+    _voltsBar ={new TFTBar()};
+
+    _voltsBar->colour = ST7735_GREEN;
+    uint16_t inset = 3;
+    _voltsBar->x0 = inset;
+    _voltsBar->maxWidth = _tft->width() - (2 * inset);
+    _voltsBar->height = 60;
+    _voltsBar->y0 = _tft->height() - 20 - _voltsBar->height - inset;
+}
+
+void Display::voltsReady(bool ready) {
+    if (ready && _pager->mode == 0x02) {
+        _tftUpdate->needsUpdate = true;
+    }
+}
+
+void Display::_modeDrawVolts() {
+    if (_tftUpdate->needsBackground) {
+        _tft->fillScreen(DISPLAY_BACKGROUND);
+
+        // Border
+        _tft->drawRect(2, 2, _tft->width() - 4, _tft->height() - 4, ST7735_GREEN);
+
+        // Tick marks; above and below the bar
+        uint8_t major = 20;
+        uint8_t minor = 5;
+        uint16_t majorHeight = 5;
+        uint16_t minorHeight = 2;
+        uint16_t y0major = _voltsBar->y0 - 1 - majorHeight;
+        uint16_t y0minor = _voltsBar->y0 - 1 - minorHeight;
+        uint16_t y1 = _voltsBar->y0 + _voltsBar->height + 1;
+        for (int16_t w = 0; w <= _voltsBar->maxWidth; w++) {
+            if (w % major == 0) {
+                _tft->drawFastVLine(_voltsBar->x0 + w, y0major, majorHeight, _voltsBar->colour);
+                _tft->drawFastVLine(_voltsBar->x0 + w, y1, majorHeight, _voltsBar->colour);
+            } else if (w % minor == 0) {
+                _tft->drawFastVLine(_voltsBar->x0 + w, y0minor, minorHeight, _voltsBar->colour);
+                _tft->drawFastVLine(_voltsBar->x0 + w, y1, minorHeight, _voltsBar->colour);
+            }
+        }
+
+        _tftUpdate->needsBackground = false;
+    }
+    if (_voltBuffer != 0 && !_voltBuffer->isEmpty()) {
+//        _tft->setCursor(40, 50);
+//        _tft->setTextColor(ST7735_YELLOW);
+//        _tft->setTextSize(2);
+//        _tft->println(_voltBuffer->read() * 5.0 / _maxVolts);
+//        _tft->println(2.0);
+        double fraction = _voltBuffer->read();
+//        Serial.print(fraction);
+        _renderBar(_voltsBar, fraction / _maxVolts);
+    }
+}
+
+void Display::_renderBar(TFTBar *bar, double fraction) {
+//    Serial.println(fraction);
+    // Calc fractional width from max width
+    int16_t width = (int16_t)((fraction * bar->maxWidth) + 0.5);
+
+    int16_t maxHeight = bar->y0 + bar->height;
+
+    // Blackout
+    int16_t blackWidth = bar->maxWidth - width;
+    for (int16_t y = bar->y0; y < maxHeight; y++) {
+        _tft->drawFastHLine(bar->x0 + width, y, blackWidth, DISPLAY_BACKGROUND);
+    }
+
+    // Partial bar
+    for (int16_t y = bar->y0; y < maxHeight; y++) {
+        _tft->drawFastHLine(bar->x0, y, width, bar->colour);
+    }
 }
