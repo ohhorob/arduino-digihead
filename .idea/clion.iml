@@ -14,6 +14,7 @@
           <root url="file://$USER_HOME$/.platformio/lib/RKW_Led/src" />
           <root url="file://$USER_HOME$/.platformio/lib/ADC" />
           <root url="file://$USER_HOME$/.platformio/lib/Adafruit_ST7735_ID12" />
+          <root url="file://$USER_HOME$/.platformio/lib/Bounce2_ID1106" />
           <root url="file://$USER_HOME$/.platformio/lib/Terminal_ID249" />
           <root url="file://$USER_HOME$/.platformio/lib/Adafruit_GFX_ID13" />
           <root url="file://$USER_HOME$/.platformio/lib/ClickEncoder_ID291" />
@@ -50,6 +51,7 @@
           <root url="file://$USER_HOME$/.platformio/lib/RKW_Led/src" />
           <root url="file://$USER_HOME$/.platformio/lib/ADC" />
           <root url="file://$USER_HOME$/.platformio/lib/Adafruit_ST7735_ID12" />
+          <root url="file://$USER_HOME$/.platformio/lib/Bounce2_ID1106" />
           <root url="file://$USER_HOME$/.platformio/lib/Terminal_ID249" />
           <root url="file://$USER_HOME$/.platformio/lib/Adafruit_GFX_ID13" />
           <root url="file://$USER_HOME$/.platformio/lib/ClickEncoder_ID291" />
