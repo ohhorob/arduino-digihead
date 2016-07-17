@@ -25,6 +25,11 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
 
     _voltBuffer = 0;
 
+    for (uint8_t i = 0; i < DISPLAY_MAX_CHANNELS; i++) {
+        _channelBars[i] = {new TFTBar()};
+        _channelBars[i]->maxValue = 0;
+    }
+
     _tft->initR(INITR_144GREENTAB);   // initialize a ST7735S chip, green tab
     _tft->fillScreen(DISPLAY_BACKGROUND);
 }
@@ -43,6 +48,8 @@ void Display::setupBrightness(int8_t pwm) {
     pinMode(_brightnessPWM, OUTPUT);
 
     _brightnessBar = {new TFTBar()};
+    _brightnessBar->maxValue = 255;
+    _brightnessBar->value = _brightness;
     _brightnessBar->colour = ST7735_BLUE;
     uint16_t inset = 3;
     _brightnessBar->x0 = inset;
@@ -178,6 +185,9 @@ void Display::maintain() {
                 case 0x02: // Volts
                     _modeDrawVolts();
                     break;
+                case 0x03: // Channels
+                    _modeDrawChannels();
+                    break;
                 default: // Hmmm.. not sure
                     _tft->fillScreen(DISPLAY_BACKGROUND);
                     _tft->setCursor(40, 60);
@@ -216,9 +226,9 @@ void Display::splash() {
 void Display::_modeDrawBrightness() {
     // Render a bar for brightness
     TFTBar* bar = _brightnessBar;
-    uint8_t maxBrightness = 255;
+//    uint8_t maxBrightness = 255;
     double fraction = _brightness;
-    fraction /= maxBrightness;
+    fraction /= bar->maxValue;
     _renderBar(_brightnessBar, fraction);
 }
 
@@ -229,9 +239,10 @@ void Display::_modeDrawMenu() {
 
 void Display::setupVolts(RingBuffer *buffer, uint32_t max) {
     _voltBuffer = buffer;
-    _maxVolts = max;
     _voltsBar ={new TFTBar()};
 
+    _voltsBar->maxValue = max;
+    _voltsBar->value = 0;
     _voltsBar->colour = ST7735_GREEN;
     uint16_t inset = 3;
     _voltsBar->x0 = inset;
@@ -240,9 +251,30 @@ void Display::setupVolts(RingBuffer *buffer, uint32_t max) {
     _voltsBar->y0 = _tft->height() - 20 - _voltsBar->height - inset;
 }
 
+void Display::setupChannel(uint8_t channel, uint32_t max) {
+    TFTBar *bar = _channelBars[channel];
+    bar->maxValue = max;
+    bar->value = 0;
+    bar->colour = ST7735_BLUE;
+    uint16_t inset = 3;
+    bar->x0 = inset;
+    bar->maxWidth = _tft->width() - (2 * inset);
+    bar->height = 40;
+    bar->y0 = inset + channel * bar->height;
+}
+
 void Display::voltsReady(bool ready) {
     if (ready && _pager->mode == 0x02) {
         _tftUpdate->needsUpdate = true;
+    }
+}
+
+void Display::setChannel(uint8_t channel, uint32_t value) {
+    if (_channelBars[channel]->maxValue > 0) {
+        _channelBars[channel]->value = value;
+        if (_pager->mode == 0x03) {
+            _tftUpdate->needsUpdate = true;
+        }
     }
 }
 
@@ -279,9 +311,31 @@ void Display::_modeDrawVolts() {
 //        _tft->setTextSize(2);
 //        _tft->println(_voltBuffer->read() * 5.0 / _maxVolts);
 //        _tft->println(2.0);
+
         double fraction = _voltBuffer->read();
+        fraction /= _voltsBar->maxValue;
 //        Serial.print(fraction);
-        _renderBar(_voltsBar, fraction / _maxVolts);
+        _renderBar(_voltsBar, fraction);
+    }
+}
+
+void Display::_modeDrawChannels() {
+    if (_tftUpdate->needsBackground) {
+        _tft->fillScreen(DISPLAY_BACKGROUND);
+
+        // Border
+        _tft->drawRect(2, 2, _tft->width() - 4, _tft->height() - 4, ST7735_BLUE);
+
+        _tftUpdate->needsBackground = false;
+    }
+
+    for (int8_t ch = 0; ch < DISPLAY_MAX_CHANNELS; ch++) {
+        TFTBar *channelBar = _channelBars[ch];
+        if (channelBar->maxValue != 0) {
+            double fraction = channelBar->value;
+            fraction /= channelBar->maxValue;
+            _renderBar(channelBar, fraction);
+        }
     }
 }
 

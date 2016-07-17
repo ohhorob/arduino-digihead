@@ -36,8 +36,13 @@
 //#define GPSSERIAL_BAUD ???
 
 // Innovate MTS serial data
-#define MTSSERIAL      Serial3
+#define MTSSERIAL      Serial2
 #define MTSSERIAL_BAUD 19200
+
+void maintainMTS();
+void buildPacket(byte *buffer, uint8_t len);
+#define RECBUFF 256
+byte mtsbuffer[RECBUFF];
 
 #include <ADC.h>
 #define RING_BUFFER_DEFAULT_BUFFER_SIZE 32
@@ -88,6 +93,8 @@ Encoder rotary(ENC_A, ENC_B);
 void maintainRotary();
 
 #include <Bounce2.h>
+#include <algorithm>
+
 Bounce debouncer = Bounce();
 
 void setupButton();
@@ -107,6 +114,8 @@ void setup() {
     Serial.begin(19200);  // USB, communication to PC or Mac
 
     display.setupBrightness(TFT_LITE);
+    display.setupChannel(1, 0xFFF);
+    display.setupChannel(2, 512);
 
     // Waits until USB is connected
     while(!Serial) {
@@ -114,11 +123,17 @@ void setup() {
         delay(20);
     }
 
-    HWSERIAL.begin(HWSERIAL_BAUD);
-
     display.splash();
 
-    Serial.println("Connected.");
+    Serial.println("Connected USB.");
+
+    MTSSERIAL.begin(MTSSERIAL_BAUD);
+    while(!MTSSERIAL) {
+        maintainLeds();
+        delay(20);
+    }
+
+    Serial.println("Connected MTS.");
 
     Leds[LED_BOARD].off();
     Leds[LED_RED].off();
@@ -196,13 +211,13 @@ void adc0_isr() {
 
 /******* LOOP *******/
 
-uint32_t lastLoop = 0;
+uint32_t lastLoop = millis();
 void loop() {
-//    uint32_t now = millis();
-//    if (now - lastLoop > 1000) {
-//        maintainADC();
-//        lastLoop = now;
-//    }
+    uint32_t now = millis();
+    if (now - lastLoop > 80) {
+        maintainMTS();
+        lastLoop = now;
+    }
     maintainLeds();
     maintainRotary();
     maintainButton();
@@ -261,5 +276,117 @@ void maintainADC() {
 void maintainLeds() {
     for (int i = 0; i < ledCount; i++) {
         Leds[i].tick();
+    }
+}
+
+
+void maintainMTS() {
+//    Leds[LED_BOARD].on();
+    int incomingAvailable = MTSSERIAL.available();
+    if (incomingAvailable > 0) {
+//        Leds[LED_BOARD].on();
+        uint8_t incomingRead = (uint8_t) MTSSERIAL.readBytes((char *) mtsbuffer, (size_t) incomingAvailable);
+        if (incomingRead > 0) {
+            // hand over bytes to packet decoder
+            buildPacket(mtsbuffer, incomingRead);
+        }
+//        Leds[LED_BOARD].off();
+    }
+}
+
+uint16_t headerword = 0x0000;
+byte packetbuffer[64];
+uint8_t packethead;
+uint8_t packetWords = 0;
+uint8_t packetBytes = 0;
+uint16_t channel[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+void _debugPacket() {
+    Leds[LED_RED].on();
+    Serial.print("Packet: ");
+    for (uint8_t i = 0; i < packetBytes; i++) {
+        Serial.print(packetbuffer[i], HEX);
+        i++;
+        Serial.print(packetbuffer[i], HEX);
+        Serial.print(' ');
+    }
+    Serial.println();
+    Leds[LED_RED].off();
+}
+
+/**
+ * Return how many channels were read
+ */
+uint8_t _decodePacket(byte *packet) {
+    uint8_t b = 0;
+    // Header: recording, length
+    b += 2;
+
+    // Status: function, afr multiplier
+    uint16_t status = (packet[b] << 8) | packet[b+1];
+    if ((status & 0x4200) == 0x4200) {
+        uint8_t function = (status & 0b0001110000000000) >> 10;
+        Serial.print(function, DEC);
+        uint8_t af =       (status & 0b0000000100000000) >>  8;
+                af |=      (status & 0b0000000001111111);
+        b += 2;
+        // Lambda: 13 bit value
+        uint16_t lambda = (packet[b] << 8) | packet[b+1];
+        Serial.print(" Lambda = ");
+        Serial.print(lambda, DEC);
+        b += 2;
+    }
+    // Word by word each additional channel if present
+    uint8_t ch = 0;
+    for(; b<packetBytes; b+=2, ch++) {
+        // Aux n: 13 bit value
+        channel[ch] = (packet[b] << 8) | packet[b+1];
+        Serial.print("; ch[");
+        Serial.print(ch);
+        Serial.print("] = ");
+        Serial.print(channel[ch]);
+    }
+    Serial.println();
+    return ch;
+}
+
+void buildPacket(byte *buffer, uint8_t len) {
+//    Serial.print("<< ");
+//    Serial.println(len);
+    for (uint8_t i = 0; i < len; i++) {
+        if (packetWords == 0) {
+            // Not mid-packet, so keep looking for a valid header
+            headerword = (headerword << 8);
+            headerword |= buffer[i];
+            if ((headerword & 0xA280) == 0xA280) {
+                // Valid packet header word available
+                // bit8, bit6, .. bit0
+                packetWords = (headerword & 0b0000000100000000) >> 1;
+                packetWords |= (headerword & 0b0000000001111111);
+                // header contains "word" length.. double it for bytes
+                packetBytes = (uint8_t) (packetWords * 2 + 2);
+                packetbuffer[0] = (byte) ((headerword & 0xFF00) >> 8);
+                packetbuffer[1] = (byte) (headerword & 0x00FF);
+                packethead = 2;
+            }
+        } else {
+            // Header is in place; bytes are added to packet buffer
+            packetbuffer[packethead++] = buffer[i];
+
+            // Until the packet head matches the bytes required
+            if (packethead >= packetBytes) {
+                packetbuffer[packethead] = 0x00;
+                // Dispatch packet buffer for consumption
+//                _debugPacket();
+                uint8_t channelCount = _decodePacket(packetbuffer);
+                if (channelCount >= 2) {
+                    display.setChannel(1, channel[1]);
+                    display.setChannel(2, channel[2]);
+                }
+                // Reset packet building
+                headerword = 0;
+                packetWords = 0;
+            }
+        }
     }
 }

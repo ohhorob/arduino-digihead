@@ -7,6 +7,15 @@
 #include <SPI.h>
 #include <RingBuffer.h>
 
+
+// Update interval
+
+#define DISPLAY_INTERVAL_UPDATE 50
+
+#define DISPLAY_BACKGROUND ST7735_BLACK
+
+#define DISPLAY_MAX_CHANNELS 8
+
 // Global Screen State
 typedef struct {
     uint32_t lastUpdate;
@@ -31,6 +40,8 @@ typedef struct {
     uint16_t width;
     uint16_t maxWidth;
     uint16_t colour;
+    uint32_t value;
+    uint32_t maxValue;
 } TFTBar;
 
 // TFT Hardware; requires SPI
@@ -47,6 +58,8 @@ public:
     void setBrightness(int16_t b=128);
     void setupVolts(RingBuffer *buffer, uint32_t max);
     void voltsReady(bool ready);
+    void setupChannel(uint8_t channel, uint32_t max);
+    void setChannel(uint8_t channel, uint32_t value);
 
     void splash();
 
@@ -62,20 +75,16 @@ private:
     TFTBar*   _brightnessBar;
 
     RingBuffer *_voltBuffer;
-    uint32_t    _maxVolts;
     TFTBar*     _voltsBar;
+
+    TFTBar *_channelBars[DISPLAY_MAX_CHANNELS];
 
     void _modeDrawBrightness();
     void _modeDrawMenu();
     void _modeDrawVolts();
+    void _modeDrawChannels();
 
     void _renderBar(TFTBar *bar, double fraction);
 };
-
-// Update interval
-
-#define DISPLAY_INTERVAL_UPDATE 50
-
-#define DISPLAY_BACKGROUND ST7735_BLACK
 
 #endif //DIGIHEAD_DISPLAY_H
