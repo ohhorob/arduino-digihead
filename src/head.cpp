@@ -38,6 +38,8 @@
 // Innovate MTS serial data
 #define MTSSERIAL      Serial2
 #define MTSSERIAL_BAUD 19200
+#define MTS10BIT_MAX 0b0000001111111111
+#define MTS13BIT_MAX 0b0001111111111111
 
 void maintainMTS();
 void buildPacket(byte *buffer, uint8_t len);
@@ -114,8 +116,10 @@ void setup() {
     Serial.begin(19200);  // USB, communication to PC or Mac
 
     display.setupBrightness(TFT_LITE);
-    display.setupChannel(1, 0xFFF);
-    display.setupChannel(2, 512);
+    display.setupChannel(0, 8191); // Lambda
+    display.setupChannel(1, MTS13BIT_MAX);
+    display.setupChannel(2, 480);
+    display.setupChannel(3, MTS10BIT_MAX);
 
     // Waits until USB is connected
     while(!Serial) {
@@ -317,6 +321,7 @@ void _debugPacket() {
 /**
  * Return how many channels were read
  */
+uint16_t lambda = 0;
 uint8_t _decodePacket(byte *packet) {
     uint8_t b = 0;
     // Header: recording, length
@@ -326,14 +331,14 @@ uint8_t _decodePacket(byte *packet) {
     uint16_t status = (packet[b] << 8) | packet[b+1];
     if ((status & 0x4200) == 0x4200) {
         uint8_t function = (status & 0b0001110000000000) >> 10;
-        Serial.print(function, DEC);
+//        Serial.print(function, DEC);
         uint8_t af =       (status & 0b0000000100000000) >>  8;
                 af |=      (status & 0b0000000001111111);
         b += 2;
         // Lambda: 13 bit value
-        uint16_t lambda = (packet[b] << 8) | packet[b+1];
-        Serial.print(" Lambda = ");
-        Serial.print(lambda, DEC);
+        lambda = (packet[b] << 8) | packet[b+1];
+//        Serial.print(" Lambda = ");
+//        Serial.print(lambda, DEC);
         b += 2;
     }
     // Word by word each additional channel if present
@@ -341,12 +346,12 @@ uint8_t _decodePacket(byte *packet) {
     for(; b<packetBytes; b+=2, ch++) {
         // Aux n: 13 bit value
         channel[ch] = (packet[b] << 8) | packet[b+1];
-        Serial.print("; ch[");
-        Serial.print(ch);
-        Serial.print("] = ");
-        Serial.print(channel[ch]);
+//        Serial.print("; ch[");
+//        Serial.print(ch);
+//        Serial.print("] = ");
+//        Serial.print(channel[ch]);
     }
-    Serial.println();
+//    Serial.println();
     return ch;
 }
 
@@ -375,17 +380,22 @@ void buildPacket(byte *buffer, uint8_t len) {
 
             // Until the packet head matches the bytes required
             if (packethead >= packetBytes) {
+                Leds[LED_RED].on();
                 packetbuffer[packethead] = 0x00;
                 // Dispatch packet buffer for consumption
 //                _debugPacket();
                 uint8_t channelCount = _decodePacket(packetbuffer);
+                display.setChannel(0, lambda);
                 if (channelCount >= 2) {
                     display.setChannel(1, channel[1]);
                     display.setChannel(2, channel[2]);
+                    display.setChannel(3, channel[3]);
                 }
                 // Reset packet building
                 headerword = 0;
                 packetWords = 0;
+
+                Leds[LED_RED].off();
             }
         }
     }

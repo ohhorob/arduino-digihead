@@ -255,12 +255,12 @@ void Display::setupChannel(uint8_t channel, uint32_t max) {
     TFTBar *bar = _channelBars[channel];
     bar->maxValue = max;
     bar->value = 0;
-    bar->colour = ST7735_BLUE;
+    bar->colour = ST7735_YELLOW;
     uint16_t inset = 3;
     bar->x0 = inset;
     bar->maxWidth = _tft->width() - (2 * inset);
-    bar->height = 40;
-    bar->y0 = inset + channel * bar->height;
+    bar->height = 29;
+    bar->y0 = inset + channel * (bar->height + 2);
 }
 
 void Display::voltsReady(bool ready) {
@@ -306,15 +306,9 @@ void Display::_modeDrawVolts() {
         _tftUpdate->needsBackground = false;
     }
     if (_voltBuffer != 0 && !_voltBuffer->isEmpty()) {
-//        _tft->setCursor(40, 50);
-//        _tft->setTextColor(ST7735_YELLOW);
-//        _tft->setTextSize(2);
-//        _tft->println(_voltBuffer->read() * 5.0 / _maxVolts);
-//        _tft->println(2.0);
 
         double fraction = _voltBuffer->read();
         fraction /= _voltsBar->maxValue;
-//        Serial.print(fraction);
         _renderBar(_voltsBar, fraction);
     }
 }
@@ -342,7 +336,7 @@ void Display::_modeDrawChannels() {
 void Display::_renderBar(TFTBar *bar, double fraction) {
 //    Serial.println(fraction);
     // Calc fractional width from max width
-    int16_t width = (int16_t)((fraction * bar->maxWidth) + 0.5);
+    int16_t width = fraction < 1.0 ? (int16_t)((fraction * bar->maxWidth) + 0.5) : bar->maxWidth;
 
     int16_t maxHeight = bar->y0 + bar->height;
 
