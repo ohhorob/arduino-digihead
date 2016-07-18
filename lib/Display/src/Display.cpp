@@ -1,5 +1,7 @@
 #include "Display.h"
 
+#DEBUG 0
+
 Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
 {
     // Ensure the SPI clock is on the correct pin
@@ -127,12 +129,12 @@ void Display::directionInput(int16_t delta) {
             if (_pager->nextMode > 5) {
                 _pager->nextMode = 5;
             }
-            Serial.print("Direction Input nexMode=");
-            Serial.println(_pager->nextMode);
+//            Serial.print("Direction Input nexMode=");
+//            Serial.println(_pager->nextMode);
             accumulatedDirection = 0;
         } else if (abs(accumulatedDirection) < 5) {
-            Serial.print("Still accumulating direction: ");
-            Serial.println(accumulatedDirection, DEC);
+//            Serial.print("Still accumulating direction: ");
+//            Serial.println(accumulatedDirection, DEC);
         } else if (now - _pager->nextWhen > 100) {
             // Reset accumulated direction
             accumulatedDirection = 0;
@@ -146,13 +148,15 @@ void Display::directionInput(int16_t delta) {
 void Display::pressInput(uint8_t button, boolean pressed) {
     switch (button) {
         case 0x01:
-            Serial.print("Encoder Button: ");
-            Serial.println(pressed ? "DOWN" : "UP");
+#if DEBUG
+//            Serial.print("Encoder Button: ");
+//            Serial.println(pressed ? "DOWN" : "UP");
             _pager->changeModeOnDirection = pressed;
             break;
         default:
-            Serial.print("Unknown button: ");
-            Serial.println(button);
+//            Serial.print("Unknown button: ");
+//            Serial.println(button);
+            break;
     }
 }
 
@@ -168,7 +172,7 @@ void Display::maintain() {
         _pager->nextWhen = 0;
         _tftUpdate->needsUpdate = true;
         _tftUpdate->needsBackground = true;
-        Serial.print("maintain: changed mode to "); Serial.println(_pager->mode, HEX);
+//        Serial.print("maintain: changed mode to "); Serial.println(_pager->mode, HEX);
     }
 
     // Perform drawing tasks once per interval
@@ -273,7 +277,17 @@ void Display::setChannel(uint8_t channel, uint32_t value) {
     if (_channelBars[channel]->maxValue > 0) {
         _channelBars[channel]->value = value;
         if (_pager->mode == 0x03) {
-            _tftUpdate->needsUpdate = true;
+            if (!_tftUpdate->needsUpdate) {
+                _tftUpdate->needsUpdate = true;
+//                if (channel == 2) {
+//                    Serial.print("SET[");
+//                    Serial.print(channel);
+//                    Serial.print("] = 0x");
+//                    Serial.print(value, HEX);
+//                    Serial.print(" ");
+//                    Serial.println(value);
+//                }
+            }
         }
     }
 }

@@ -21,11 +21,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ec922180-b3d3-40f1-af0b-2568113a9075" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/MTS/src/Drive.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/MTS/src/Drive.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/MTS/src/PacketBuffer.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/MTS/src/PacketBuffer.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Display/src/Display.cpp" afterPath="$PROJECT_DIR$/lib/Display/src/Display.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/Display/src/Display.h" afterPath="$PROJECT_DIR$/lib/Display/src/Display.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/head.cpp" afterPath="$PROJECT_DIR$/src/head.cpp" />
     </list>
     <ignored path="platformio.iws" />
@@ -46,45 +45,33 @@
     <favorites_list name="digihead" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5">
+    <splitter split-orientation="horizontal" split-proportion="0.46307153">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="head.cpp" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/head.cpp">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="452">
-                  <caret line="117" column="31" selection-start-line="117" selection-start-column="31" selection-end-line="117" selection-end-column="31" />
+                <state relative-caret-position="367">
+                  <caret line="284" column="21" selection-start-line="284" selection-start-column="21" selection-end-line="284" selection-end-column="21" />
                   <folding>
                     <element signature="e#0#20#0" expanded="true" />
-                    <element signature="e#2118#2138#0" expanded="true" />
-                    <element signature="e#5493#5838#0" expanded="false" />
-                    <element signature="e#5865#6249#0" expanded="false" />
-                    <element signature="e#6251#6654#0" expanded="false" />
-                    <element signature="e#6657#6809#0" expanded="false" />
-                    <element signature="e#7444#7750#0" expanded="false" />
-                    <marker date="1468722988000" expanded="true" signature="5265:5377" ph="..." />
-                    <marker date="1468722988000" expanded="false" signature="6831:7268" ph="{...}" />
-                    <marker date="1468722988000" expanded="false" signature="7834:8821" ph="{...}" />
+                    <element signature="e#3616#3771#0" expanded="false" />
+                    <element signature="e#3773#3991#0" expanded="false" />
+                    <element signature="e#4512#4761#0" expanded="false" />
+                    <element signature="e#4763#5603#0" expanded="false" />
+                    <element signature="e#6194#6578#0" expanded="false" />
+                    <element signature="e#6581#6733#0" expanded="false" />
+                    <element signature="e#6735#7258#0" expanded="false" />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Drive.cpp" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/lib/MTS/src/Drive.cpp">
+          <file leaf-file-name="Display.cpp" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/.pioenvs/teensy31/Display/Display.cpp">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="105">
-                  <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="Drive.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/lib/MTS/src/Drive.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="120">
-                  <caret line="8" column="45" selection-start-line="8" selection-start-column="45" selection-end-line="8" selection-end-column="45" />
+                <state relative-caret-position="231">
+                  <caret line="131" column="12" selection-start-line="131" selection-start-column="12" selection-end-line="131" selection-end-column="12" />
                   <folding />
                 </state>
               </provider>
@@ -103,17 +90,47 @@
         </leaf>
       </split-first>
       <split-second>
-        <splitter split-orientation="vertical" split-proportion="0.38498557">
+        <splitter split-orientation="vertical" split-proportion="0.3049738">
           <split-first>
             <leaf>
-              <file leaf-file-name="Display.h" pinned="false" current-in-tab="true">
+              <file leaf-file-name="Display.h" pinned="false" current-in-tab="false">
                 <entry file="file://$PROJECT_DIR$/lib/Display/src/Display.h">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="240">
-                      <caret line="16" column="30" selection-start-line="16" selection-start-column="30" selection-end-line="16" selection-end-column="30" />
+                    <state relative-caret-position="660">
+                      <caret line="48" column="0" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="Drive.h" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/lib/MTS/src/Drive.h">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="345">
+                      <caret line="23" column="12" selection-start-line="23" selection-start-column="12" selection-end-line="23" selection-end-column="12" />
                       <folding>
-                        <element signature="e#55#75#0" expanded="true" />
+                        <element signature="e#52#71#0" expanded="true" />
                       </folding>
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="Packet.h" pinned="false" current-in-tab="true">
+                <entry file="file://$PROJECT_DIR$/lib/MTS/src/Packet.h">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="68">
+                      <caret line="20" column="10" selection-start-line="20" selection-start-column="10" selection-end-line="20" selection-end-column="10" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="PacketBuffer.h" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/lib/MTS/src/PacketBuffer.h">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="98">
+                      <caret line="67" column="14" selection-start-line="67" selection-start-column="14" selection-end-line="67" selection-end-column="14" />
+                      <folding />
                     </state>
                   </provider>
                 </entry>
@@ -125,29 +142,42 @@
               <file leaf-file-name="Display.cpp" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/lib/Display/src/Display.cpp">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="383">
-                      <caret line="328" column="44" selection-start-line="328" selection-start-column="44" selection-end-line="328" selection-end-column="44" />
+                    <state relative-caret-position="30">
+                      <caret line="2" column="8" selection-start-line="2" selection-start-column="8" selection-end-line="2" selection-end-column="8" />
                       <folding>
-                        <element signature="e#978#1161#0" expanded="false" />
-                        <element signature="e#1708#1799#0" expanded="false" />
-                        <element signature="e#2298#2375#0" expanded="false" />
-                        <element signature="e#2298#2670#0" expanded="false" />
-                        <element signature="e#2672#2940#0" expanded="false" />
-                        <element signature="e#3026#4134#0" expanded="false" />
-                        <element signature="e#4136#4514#0" expanded="false" />
-                        <element signature="e#6578#6795#0" expanded="false" />
-                        <element signature="e#7050#7199#0" expanded="false" />
-                        <marker date="1468722921000" expanded="false" signature="1846:2296" ph="{...}" />
+                        <element signature="e#4265#11358#0" expanded="true" />
                       </folding>
                     </state>
                   </provider>
                 </entry>
               </file>
-              <file leaf-file-name="RingBuffer.cpp" pinned="false" current-in-tab="false">
-                <entry file="file://$USER_HOME$/.platformio/lib/ADC/RingBuffer.cpp">
+              <file leaf-file-name="Drive.cpp" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/lib/MTS/src/Drive.cpp">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="327">
-                      <caret line="54" column="16" selection-start-line="54" selection-start-column="16" selection-end-line="54" selection-end-column="16" />
+                    <state relative-caret-position="375">
+                      <caret line="25" column="21" selection-start-line="25" selection-start-column="21" selection-end-line="25" selection-end-column="21" />
+                      <folding />
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="PacketBuffer.cpp" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/lib/MTS/src/PacketBuffer.cpp">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="275">
+                      <caret line="186" column="4" selection-start-line="186" selection-start-column="4" selection-end-line="186" selection-end-column="4" />
+                      <folding>
+                        <element signature="e#1189#1214#0" expanded="true" />
+                      </folding>
+                    </state>
+                  </provider>
+                </entry>
+              </file>
+              <file leaf-file-name="Packet.cpp" pinned="false" current-in-tab="false">
+                <entry file="file://$PROJECT_DIR$/lib/MTS/src/Packet.cpp">
+                  <provider selected="true" editor-type-id="text-editor">
+                    <state relative-caret-position="225">
+                      <caret line="52" column="0" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
                       <folding />
                     </state>
                   </provider>
@@ -165,11 +195,15 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
+        <option value="$PROJECT_DIR$/.pioenvs/teensy31/MTS/Packet.h" />
         <option value="$PROJECT_DIR$/lib/MTS/src/Drive.h" />
+        <option value="$PROJECT_DIR$/lib/MTS/src/PacketBuffer.h" />
+        <option value="$PROJECT_DIR$/lib/MTS/src/Packet.h" />
         <option value="$PROJECT_DIR$/lib/MTS/src/Drive.cpp" />
-        <option value="$PROJECT_DIR$/lib/Display/src/Display.h" />
-        <option value="$PROJECT_DIR$/lib/Display/src/Display.cpp" />
+        <option value="$PROJECT_DIR$/lib/MTS/src/Packet.cpp" />
+        <option value="$PROJECT_DIR$/lib/MTS/src/PacketBuffer.cpp" />
         <option value="$PROJECT_DIR$/src/head.cpp" />
+        <option value="$PROJECT_DIR$/lib/Display/src/Display.cpp" />
       </list>
     </option>
   </component>
@@ -179,10 +213,9 @@
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="262" />
     <option name="y" value="23" />
-    <option name="width" value="2025" />
-    <option name="height" value="1244" />
+    <option name="width" value="1440" />
+    <option name="height" value="830" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -329,146 +362,8 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
   </component>
   <component name="RunManager" selected="Application.PLATFORMIO_UPLOAD">
-    <configuration default="true" type="CMakeGoogleTestRunConfigurationType" factoryName="Google Test" PASS_PARENT_ENVS_2="true" PROJECT_NAME="digihead" TARGET_NAME="digihead" CONFIG_NAME="Debug" TEST_MODE="SUITE_TEST">
-      <envs />
-      <method />
-    </configuration>
     <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="digihead" TARGET_NAME="digihead" CONFIG_NAME="Debug">
       <envs />
-      <method />
-    </configuration>
-    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="clion" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="true" type="Tox" factoryName="Tox">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="clion" />
-      <method />
-    </configuration>
-    <configuration default="true" type="tests" factoryName="Attests">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="clion" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <method />
-    </configuration>
-    <configuration default="true" type="tests" factoryName="Doctests">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="clion" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <method />
-    </configuration>
-    <configuration default="true" type="tests" factoryName="Nosetests">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="clion" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="PARAMS" value="" />
-      <option name="USE_PARAM" value="false" />
-      <method />
-    </configuration>
-    <configuration default="true" type="tests" factoryName="Unittests">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="clion" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="PUREUNITTEST" value="true" />
-      <option name="PARAMS" value="" />
-      <option name="USE_PARAM" value="false" />
-      <method />
-    </configuration>
-    <configuration default="true" type="tests" factoryName="py.test">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="clion" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="testToRun" value="" />
-      <option name="keywords" value="" />
-      <option name="params" value="" />
-      <option name="USE_PARAM" value="false" />
-      <option name="USE_KEYWORD" value="false" />
       <method />
     </configuration>
     <configuration default="false" name="Build All" type="CMakeRunConfiguration" factoryName="Application" WORKING_DIR="" PASS_PARENT_ENVS_2="true" CONFIG_NAME="Debug" EXPLICIT_BUILD_TARGET_NAME="all">
@@ -531,19 +426,19 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="262" y="23" width="2025" height="1244" extended-state="0" />
+    <frame x="0" y="23" width="1440" height="830" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20833333" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2615176" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="Serial Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="FLOATING" visible="true" show_stripe_button="true" weight="0.3298611" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" x="64" y="1240" width="1845" height="187" />
+      <window_info id="Serial Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32924694" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17165668" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3298611" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14446793" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32791328" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -568,7 +463,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="6" />
+      <option name="time" value="5" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -581,220 +476,113 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/CMakeListsPrivate.txt">
+    <entry file="file://$PROJECT_DIR$/lib/Display/src/Display.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="142">
-          <caret line="23" column="53" selection-start-line="23" selection-start-column="53" selection-end-line="23" selection-end-column="53" />
+        <state relative-caret-position="660">
+          <caret line="48" column="0" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/Adafruit_ST7735_ID12/Adafruit_ST7735.h">
+    <entry file="file://$PROJECT_DIR$/.pioenvs/teensy31/MTS/Packet.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="386">
-          <caret line="179" column="22" selection-start-line="179" selection-start-column="19" selection-end-line="179" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/Adafruit_ST7735_ID12/Adafruit_ST7735.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="143">
-          <caret line="43" column="88" selection-start-line="43" selection-start-column="88" selection-end-line="43" selection-end-column="88" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/ADC/ADC_Module.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="842" column="36" selection-start-line="842" selection-start-column="22" selection-end-line="842" selection-end-column="36" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/packages/framework-arduinoteensy/cores/teensy3/pins_arduino.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="313">
-          <caret line="54" column="24" selection-start-line="54" selection-start-column="21" selection-end-line="54" selection-end-column="24" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/ADC/examples/analogContinuousDifferentialRead/analogContinuousDifferentialRead.ino">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="248">
-          <caret line="18" column="12" selection-start-line="18" selection-start-column="12" selection-end-line="18" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/ADC/examples/analogDifferentialRead/analogDifferentialRead.ino">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="795">
-          <caret line="65" column="55" selection-start-line="65" selection-start-column="50" selection-end-line="65" selection-end-column="55" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/packages/framework-arduinoteensy/cores/teensy3/serial1.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1815">
-          <caret line="151" column="31" selection-start-line="151" selection-start-column="31" selection-end-line="151" selection-end-column="31" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/Bounce2_ID1106/Bounce2.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="313">
-          <caret line="41" column="13" selection-start-line="41" selection-start-column="13" selection-end-line="41" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/packages/framework-arduinoteensy/cores/teensy3/IntervalTimer.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="493">
-          <caret line="59" column="44" selection-start-line="59" selection-start-column="44" selection-end-line="59" selection-end-column="44" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/ADC/examples/analogReadIntervalTimer/analogReadIntervalTimer.ino">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="213">
-          <caret line="82" column="15" selection-start-line="82" selection-start-column="15" selection-end-line="82" selection-end-column="15" />
-          <folding>
-            <element signature="e#1146#1162#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/ADC/ADC.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="448">
-          <caret line="259" column="24" selection-start-line="259" selection-start-column="24" selection-end-line="259" selection-end-column="24" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/ADC/ADC_Module.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="418">
-          <caret line="350" column="21" selection-start-line="350" selection-start-column="21" selection-end-line="350" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/ADC/RingBuffer.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-153">
-          <caret line="32" column="41" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="41" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/ADC/ADC.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="555">
-          <caret line="39" column="10" selection-start-line="39" selection-start-column="10" selection-end-line="39" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/MTS/src/Drive.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/packages/framework-arduinoteensy/cores/teensy3/serial2.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="403">
-          <caret line="378" column="39" selection-start-line="378" selection-start-column="39" selection-end-line="378" selection-end-column="39" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.platformio/packages/framework-arduinoteensy/cores/teensy3/HardwareSerial.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="313">
-          <caret line="223" column="56" selection-start-line="223" selection-start-column="56" selection-end-line="223" selection-end-column="56" />
+        <state relative-caret-position="135">
+          <caret line="9" column="2" selection-start-line="9" selection-start-column="2" selection-end-line="9" selection-end-column="2" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/MTS/src/Drive.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="45" selection-start-line="8" selection-start-column="45" selection-end-line="8" selection-end-column="45" />
+        <state relative-caret-position="345">
+          <caret line="23" column="12" selection-start-line="23" selection-start-column="12" selection-end-line="23" selection-end-column="12" />
+          <folding>
+            <element signature="e#52#71#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/MTS/src/PacketBuffer.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="98">
+          <caret line="67" column="14" selection-start-line="67" selection-start-column="14" selection-end-line="67" selection-end-column="14" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.platformio/lib/ADC/RingBuffer.cpp">
+    <entry file="file://$PROJECT_DIR$/lib/MTS/src/Packet.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="327">
-          <caret line="54" column="16" selection-start-line="54" selection-start-column="16" selection-end-line="54" selection-end-column="16" />
+        <state relative-caret-position="68">
+          <caret line="20" column="10" selection-start-line="20" selection-start-column="10" selection-end-line="20" selection-end-column="10" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/MTS/src/Drive.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="25" column="21" selection-start-line="25" selection-start-column="21" selection-end-line="25" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.platformio/packages/framework-arduinoteensy/cores/teensy3/usb_serial.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-109">
+          <caret line="51" column="20" selection-start-line="51" selection-start-column="4" selection-end-line="51" selection-end-column="20" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/.pioenvs/teensy31/Display/Display.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="314">
-          <caret line="312" column="0" selection-start-line="312" selection-start-column="0" selection-end-line="312" selection-end-column="0" />
+        <state relative-caret-position="231">
+          <caret line="131" column="12" selection-start-line="131" selection-start-column="12" selection-end-line="131" selection-end-column="12" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Display/src/Display.h">
+    <entry file="file://$PROJECT_DIR$/lib/MTS/src/Packet.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="16" column="30" selection-start-line="16" selection-start-column="30" selection-end-line="16" selection-end-column="30" />
-          <folding>
-            <element signature="e#55#75#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="225">
+          <caret line="52" column="0" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/Display/src/Display.cpp">
+    <entry file="file://$PROJECT_DIR$/lib/MTS/src/PacketBuffer.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="383">
-          <caret line="328" column="44" selection-start-line="328" selection-start-column="44" selection-end-line="328" selection-end-column="44" />
+        <state relative-caret-position="275">
+          <caret line="186" column="4" selection-start-line="186" selection-start-column="4" selection-end-line="186" selection-end-column="4" />
           <folding>
-            <element signature="e#978#1161#0" expanded="false" />
-            <element signature="e#1708#1799#0" expanded="false" />
-            <element signature="e#2298#2375#0" expanded="false" />
-            <element signature="e#2298#2670#0" expanded="false" />
-            <element signature="e#2672#2940#0" expanded="false" />
-            <element signature="e#3026#4134#0" expanded="false" />
-            <element signature="e#4136#4514#0" expanded="false" />
-            <element signature="e#6578#6795#0" expanded="false" />
-            <element signature="e#7050#7199#0" expanded="false" />
-            <marker date="1468722921000" expanded="false" signature="1846:2296" ph="{...}" />
+            <element signature="e#1189#1214#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/head.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="452">
-          <caret line="117" column="31" selection-start-line="117" selection-start-column="31" selection-end-line="117" selection-end-column="31" />
+        <state relative-caret-position="367">
+          <caret line="284" column="21" selection-start-line="284" selection-start-column="21" selection-end-line="284" selection-end-column="21" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#2118#2138#0" expanded="true" />
-            <element signature="e#5493#5838#0" expanded="false" />
-            <element signature="e#5865#6249#0" expanded="false" />
-            <element signature="e#6251#6654#0" expanded="false" />
-            <element signature="e#6657#6809#0" expanded="false" />
-            <element signature="e#7444#7750#0" expanded="false" />
-            <marker date="1468722988000" expanded="true" signature="5265:5377" ph="..." />
-            <marker date="1468722988000" expanded="false" signature="6831:7268" ph="{...}" />
-            <marker date="1468722988000" expanded="false" signature="7834:8821" ph="{...}" />
+            <element signature="e#3616#3771#0" expanded="false" />
+            <element signature="e#3773#3991#0" expanded="false" />
+            <element signature="e#4512#4761#0" expanded="false" />
+            <element signature="e#4763#5603#0" expanded="false" />
+            <element signature="e#6194#6578#0" expanded="false" />
+            <element signature="e#6581#6733#0" expanded="false" />
+            <element signature="e#6735#7258#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/Display/src/Display.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="8" selection-start-line="2" selection-start-column="8" selection-end-line="2" selection-end-column="8" />
+          <folding>
+            <element signature="e#4265#11358#0" expanded="true" />
           </folding>
         </state>
       </provider>

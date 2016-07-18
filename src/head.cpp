@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <Display.h>
 
+#define PRINT true
+
 // Pins in use
 /**
  *  00 RX1 ..(CP2102)
@@ -36,18 +38,20 @@
 //#define GPSSERIAL_BAUD ???
 
 // Innovate MTS serial data
+#include <Drive.h>
 #define MTSSERIAL      Serial2
-#define MTSSERIAL_BAUD 19200
-#define MTS10BIT_MAX 0b0000001111111111
-#define MTS13BIT_MAX 0b0001111111111111
 
-void maintainMTS();
-void buildPacket(byte *buffer, uint8_t len);
-#define RECBUFF 256
+#define RECBUFF 64
 byte mtsbuffer[RECBUFF];
 
+// Keep a small buffer for reading bytes from MTSSERIAL
+void maintainMTS(); // Feed available serial data to Drive packet buffer
+
+Drive drive;
+void maintainDrive(); // Detect newly arrived packets
+
 #include <ADC.h>
-#define RING_BUFFER_DEFAULT_BUFFER_SIZE 32
+// https://forum.pjrc.com/threads/25532-ADC-library-update-now-with-support-for-Teensy-3-1
 #include "RingBuffer.h"
 // and IntervalTimer
 #include <IntervalTimer.h>
@@ -62,7 +66,6 @@ int startTimerValue0 = 0;
 const int period0 = 1000; // us
 
 void setupADC();
-void maintainADC();
 void timer0_callback();
 
 // LED Arrangement
@@ -95,12 +98,16 @@ Encoder rotary(ENC_A, ENC_B);
 void maintainRotary();
 
 #include <Bounce2.h>
-#include <algorithm>
+//#include <algorithm>
 
 Bounce debouncer = Bounce();
 
 void setupButton();
 void maintainButton();
+
+#define ANSI_ESCAPE 0x1B
+#define ANSI_LEFT_BRACKET 0x5B
+const uint8_t ERASE_DISPLAY[] = {ANSI_ESCAPE, ANSI_LEFT_BRACKET, '2', 'J'};
 
 void setup() {
     setupLeds();
@@ -117,19 +124,25 @@ void setup() {
 
     display.setupBrightness(TFT_LITE);
     display.setupChannel(0, 8191); // Lambda
-    display.setupChannel(1, MTS13BIT_MAX);
-    display.setupChannel(2, 480);
+    display.setupChannel(1, MTS10BIT_MAX); // AFM; up to ~4V
+    display.setupChannel(2, 480); // O2; up to ~1.2V
     display.setupChannel(3, MTS10BIT_MAX);
 
     // Waits until USB is connected
+#if PRINT
     while(!Serial) {
         maintainLeds();
         delay(20);
     }
+#endif // PRINT
 
     display.splash();
 
-    Serial.println("Connected USB.");
+#if PRINT
+//    Serial.write(ERASE_DISPLAY, 4);
+
+//    Serial.println("Connected USB.");
+#endif // PRINT
 
     MTSSERIAL.begin(MTSSERIAL_BAUD);
     while(!MTSSERIAL) {
@@ -137,7 +150,7 @@ void setup() {
         delay(20);
     }
 
-    Serial.println("Connected MTS.");
+//    Serial.println("Connected MTS.");
 
     Leds[LED_BOARD].off();
     Leds[LED_RED].off();
@@ -177,7 +190,9 @@ void setupADC() {
     startTimerValue0 = timer0.begin(timer0_callback, period0);
     delayMicroseconds(250);
     adc->enableInterrupts(ADC_0);
+#if PRINT
     Serial.println("ADC Timers started");
+#endif // PRINT
 }
 
 // This function will be called with the desired frequency
@@ -194,10 +209,8 @@ void adc0_isr() {
 
     // add value to correct buffer
     if(pin==ADC_POT) {
-//        digitalWriteFast(ledPin+3, HIGH);
         buffer0->write(adc->readSingle());
         display.voltsReady(true);
-//        digitalWriteFast(ledPin+3, LOW);
     } else { // clear interrupt anyway
         adc->readSingle();
     }
@@ -209,7 +222,6 @@ void adc0_isr() {
         // avoid a conversion started by this isr to repeat itself
         adc->adc0->adcWasInUse = (uint8_t) false;
     }
-    //digitalWriteFast(ledPin+2, !digitalReadFast(ledPin+2));
 }
 
 
@@ -218,8 +230,9 @@ void adc0_isr() {
 uint32_t lastLoop = millis();
 void loop() {
     uint32_t now = millis();
-    if (now - lastLoop > 80) {
+    if (now - lastLoop > 10) {
         maintainMTS();
+        maintainDrive();
         lastLoop = now;
     }
     maintainLeds();
@@ -236,7 +249,6 @@ void maintainRotary() {
     if (value != previousValue) {
         int16_t delta = (int16_t) (previousValue - value);
         display.directionInput(delta);
-//        Serial.printf("Rotary: previousValue=%ld value=%ld, delta=%d\n", previousValue, value, delta);
         previousValue = value;
     }
 }
@@ -260,21 +272,6 @@ void maintainButton() {
     }
 }
 
-void maintainADC() {
-
-    Leds[LED_BOARD].on();
-    if(startTimerValue0 == 0) {
-        Serial.println("Timer0 setup failed");
-    }
-    if(!buffer0->isEmpty()) { // read the values in the buffer
-        digitalWriteFast(13, HIGH);
-        Serial.print("Read pin 0: ");
-        Serial.println(buffer0->read()*3.3/adc->getMaxValue());
-        digitalWriteFast(13, LOW);
-    }
-    Leds[LED_BOARD].off();
-}
-
 
 // Each Led needs a `tick` to flash behaviour maintenance
 void maintainLeds() {
@@ -283,120 +280,32 @@ void maintainLeds() {
     }
 }
 
+// When a new packet has been found, push parts of it into the display
+// TODO: feed values into drive statistics (avg/min/max/etc)
+void maintainDrive() {
+    while(Packet *p = drive.nextPacket()) {
+        // Process the packet by sending it's values to display for processing
+        display.setChannel(0, p->lambda);
+        if (p->channelCount >= 2) {
+            display.setChannel(1, p->channel[1]);
+            display.setChannel(2, p->channel[2]);
+            display.setChannel(3, p->channel[3]);
+        }
+    }
+}
+
 
 void maintainMTS() {
 //    Leds[LED_BOARD].on();
+    // TODO: Move serial input to interrupt timer
     int incomingAvailable = MTSSERIAL.available();
     if (incomingAvailable > 0) {
-//        Leds[LED_BOARD].on();
+        Leds[LED_BOARD].on();
         uint8_t incomingRead = (uint8_t) MTSSERIAL.readBytes((char *) mtsbuffer, (size_t) incomingAvailable);
         if (incomingRead > 0) {
-            // hand over bytes to packet decoder
-            buildPacket(mtsbuffer, incomingRead);
+            // hand over bytes to packet buffer
+            drive.addBytes((char *) mtsbuffer, incomingRead);
         }
-//        Leds[LED_BOARD].off();
-    }
-}
-
-uint16_t headerword = 0x0000;
-byte packetbuffer[64];
-uint8_t packethead;
-uint8_t packetWords = 0;
-uint8_t packetBytes = 0;
-uint16_t channel[12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-
-void _debugPacket() {
-    Leds[LED_RED].on();
-    Serial.print("Packet: ");
-    for (uint8_t i = 0; i < packetBytes; i++) {
-        Serial.print(packetbuffer[i], HEX);
-        i++;
-        Serial.print(packetbuffer[i], HEX);
-        Serial.print(' ');
-    }
-    Serial.println();
-    Leds[LED_RED].off();
-}
-
-/**
- * Return how many channels were read
- */
-uint16_t lambda = 0;
-uint8_t _decodePacket(byte *packet) {
-    uint8_t b = 0;
-    // Header: recording, length
-    b += 2;
-
-    // Status: function, afr multiplier
-    uint16_t status = (packet[b] << 8) | packet[b+1];
-    if ((status & 0x4200) == 0x4200) {
-        uint8_t function = (status & 0b0001110000000000) >> 10;
-//        Serial.print(function, DEC);
-        uint8_t af =       (status & 0b0000000100000000) >>  8;
-                af |=      (status & 0b0000000001111111);
-        b += 2;
-        // Lambda: 13 bit value
-        lambda = (packet[b] << 8) | packet[b+1];
-//        Serial.print(" Lambda = ");
-//        Serial.print(lambda, DEC);
-        b += 2;
-    }
-    // Word by word each additional channel if present
-    uint8_t ch = 0;
-    for(; b<packetBytes; b+=2, ch++) {
-        // Aux n: 13 bit value
-        channel[ch] = (packet[b] << 8) | packet[b+1];
-//        Serial.print("; ch[");
-//        Serial.print(ch);
-//        Serial.print("] = ");
-//        Serial.print(channel[ch]);
-    }
-//    Serial.println();
-    return ch;
-}
-
-void buildPacket(byte *buffer, uint8_t len) {
-//    Serial.print("<< ");
-//    Serial.println(len);
-    for (uint8_t i = 0; i < len; i++) {
-        if (packetWords == 0) {
-            // Not mid-packet, so keep looking for a valid header
-            headerword = (headerword << 8);
-            headerword |= buffer[i];
-            if ((headerword & 0xA280) == 0xA280) {
-                // Valid packet header word available
-                // bit8, bit6, .. bit0
-                packetWords = (headerword & 0b0000000100000000) >> 1;
-                packetWords |= (headerword & 0b0000000001111111);
-                // header contains "word" length.. double it for bytes
-                packetBytes = (uint8_t) (packetWords * 2 + 2);
-                packetbuffer[0] = (byte) ((headerword & 0xFF00) >> 8);
-                packetbuffer[1] = (byte) (headerword & 0x00FF);
-                packethead = 2;
-            }
-        } else {
-            // Header is in place; bytes are added to packet buffer
-            packetbuffer[packethead++] = buffer[i];
-
-            // Until the packet head matches the bytes required
-            if (packethead >= packetBytes) {
-                Leds[LED_RED].on();
-                packetbuffer[packethead] = 0x00;
-                // Dispatch packet buffer for consumption
-//                _debugPacket();
-                uint8_t channelCount = _decodePacket(packetbuffer);
-                display.setChannel(0, lambda);
-                if (channelCount >= 2) {
-                    display.setChannel(1, channel[1]);
-                    display.setChannel(2, channel[2]);
-                    display.setChannel(3, channel[3]);
-                }
-                // Reset packet building
-                headerword = 0;
-                packetWords = 0;
-
-                Leds[LED_RED].off();
-            }
-        }
+        Leds[LED_BOARD].off();
     }
 }
