@@ -29,8 +29,8 @@
 
 // Host comms for data exchange with computer
 
-#define HWSERIAL      Serial2
-#define HWSERIAL_BAUD 57600
+//#define HWSERIAL      Serial2
+//#define HWSERIAL_BAUD 57600
 
 // GPS updates
 
@@ -127,6 +127,7 @@ void setup() {
     display.setupChannel(1, MTS10BIT_MAX); // AFM; up to ~4V
     display.setupChannel(2, 480); // O2; up to ~1.2V
     display.setupChannel(3, MTS10BIT_MAX);
+    display.setupChannel(4, MTS10BIT_MAX);
 
     // Waits until USB is connected
 #if PRINT
@@ -139,9 +140,9 @@ void setup() {
     display.splash();
 
 #if PRINT
-//    Serial.write(ERASE_DISPLAY, 4);
+    Serial.write(ERASE_DISPLAY, 4);
 
-//    Serial.println("Connected USB.");
+    Serial.println("Connected USB.");
 #endif // PRINT
 
     MTSSERIAL.begin(MTSSERIAL_BAUD);
@@ -149,12 +150,12 @@ void setup() {
         maintainLeds();
         delay(20);
     }
-
-//    Serial.println("Connected MTS.");
-
+#if PRINT
+    Serial.println("Connected MTS.");
+#endif
     Leds[LED_BOARD].off();
     Leds[LED_RED].off();
-    // Let green led flash the whole ten count
+    Leds[LED_GREEN].off();
 }
 
 /**
@@ -190,9 +191,6 @@ void setupADC() {
     startTimerValue0 = timer0.begin(timer0_callback, period0);
     delayMicroseconds(250);
     adc->enableInterrupts(ADC_0);
-#if PRINT
-    Serial.println("ADC Timers started");
-#endif // PRINT
 }
 
 // This function will be called with the desired frequency
@@ -290,6 +288,7 @@ void maintainDrive() {
             display.setChannel(1, p->channel[1]);
             display.setChannel(2, p->channel[2]);
             display.setChannel(3, p->channel[3]);
+            display.setChannel(4, p->channel[4]);
         }
     }
 }

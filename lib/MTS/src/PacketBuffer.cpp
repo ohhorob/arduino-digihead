@@ -61,9 +61,10 @@ void PacketBuffer::write(int value) {
     int previousbyte = elems[b_start];
 
     // Normal `write()` behaviour
-    elems[b_end&(b_size-1)] = value;
+//    elems[b_end&(b_size-1)] = value;
+    elems[b_end];
     if (isFull()) { /* full, overwrite moves start pointer */
-//        Serial.println("FULL");
+        Serial.println("FULL");
         b_start = increase(b_start);
     }
     b_end = increase(b_end);
@@ -109,11 +110,11 @@ int PacketBuffer::read() {
 uint16_t PacketBuffer::readWord() {
     uint16_t result = read() << 8;
     result |= read();
-//    Serial.print("readWord() = 0x");
-//    if (result <= 0x0FFF) Serial.print("0");
-//    if (result <= 0x00FF) Serial.print("0");
-//    if (result <= 0x000F) Serial.print("0");
-//    Serial.println(result, HEX);
+    Serial.print("readWord() = 0x");
+    if (result <= 0x0FFF) Serial.print("0");
+    if (result <= 0x00FF) Serial.print("0");
+    if (result <= 0x000F) Serial.print("0");
+    Serial.println(result, HEX);
     return result;
 }
 
@@ -154,6 +155,7 @@ int PacketBuffer::increase(int p) {
     int newP = p + 1;
     if (newP > b_size-1) {
         newP -= (b_size - 1);
+//        Serial.println("..wrapped pointer..");
     }
 //    return (p + 1)&(2*b_size-1);
     return newP;

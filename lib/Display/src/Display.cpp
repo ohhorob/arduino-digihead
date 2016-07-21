@@ -1,6 +1,6 @@
 #include "Display.h"
 
-#DEBUG 0
+#define DEBUG true
 
 Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
 {
@@ -149,13 +149,16 @@ void Display::pressInput(uint8_t button, boolean pressed) {
     switch (button) {
         case 0x01:
 #if DEBUG
-//            Serial.print("Encoder Button: ");
-//            Serial.println(pressed ? "DOWN" : "UP");
+            Serial.print("Encoder Button: ");
+            Serial.println(pressed ? "DOWN" : "UP");
+#endif
             _pager->changeModeOnDirection = pressed;
             break;
         default:
-//            Serial.print("Unknown button: ");
-//            Serial.println(button);
+#if DEBUG
+            Serial.print("Unknown button: ");
+            Serial.println(button);
+#endif
             break;
     }
 }
