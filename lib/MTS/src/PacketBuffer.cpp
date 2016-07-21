@@ -62,7 +62,7 @@ void PacketBuffer::write(int value) {
 
     // Normal `write()` behaviour
 //    elems[b_end&(b_size-1)] = value;
-    elems[b_end];
+    elems[b_end] = value;
     if (isFull()) { /* full, overwrite moves start pointer */
         Serial.println("FULL");
         b_start = increase(b_start);
