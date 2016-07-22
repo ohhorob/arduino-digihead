@@ -60,6 +60,7 @@ public:
     void voltsReady(bool ready);
     void setupChannel(uint8_t channel, uint32_t max);
     void setChannel(uint8_t channel, uint32_t value);
+    void setElapsed(uint32_t millis);
 
     void splash();
 
@@ -79,10 +80,13 @@ private:
 
     TFTBar *_channelBars[DISPLAY_MAX_CHANNELS];
 
+    uint32_t _elapsed;
+
     void _modeDrawBrightness();
     void _modeDrawMenu();
     void _modeDrawVolts();
     void _modeDrawChannels();
+    void _modeDrawDrive();
 
     void _renderBar(TFTBar *bar, double fraction);
 };

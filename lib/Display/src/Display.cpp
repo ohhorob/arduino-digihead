@@ -195,6 +195,9 @@ void Display::maintain() {
                 case 0x03: // Channels
                     _modeDrawChannels();
                     break;
+                case 0x04: // Channels
+                    _modeDrawDrive();
+                    break;
                 default: // Hmmm.. not sure
                     _tft->fillScreen(DISPLAY_BACKGROUND);
                     _tft->setCursor(40, 60);
@@ -295,6 +298,15 @@ void Display::setChannel(uint8_t channel, uint32_t value) {
     }
 }
 
+void Display::setElapsed(uint32_t millis) {
+    _elapsed = millis;
+    if (_pager->mode == 0x04) {
+        if (!_tftUpdate->needsUpdate) {
+            _tftUpdate->needsUpdate = true;
+        }
+    }
+}
+
 void Display::_modeDrawVolts() {
     if (_tftUpdate->needsBackground) {
         _tft->fillScreen(DISPLAY_BACKGROUND);
@@ -328,6 +340,29 @@ void Display::_modeDrawVolts() {
         fraction /= _voltsBar->maxValue;
         _renderBar(_voltsBar, fraction);
     }
+}
+
+void Display::_modeDrawDrive() {
+    if (_tftUpdate->needsBackground) {
+        _tft->fillScreen(DISPLAY_BACKGROUND);
+        // Border
+        uint32_t w = 3;
+        _tft->drawRect(w, w, _tft->width() - (2 * w), _tft->height() - (2 * w), ST7735_GREEN);
+        w--;
+        _tft->drawRect(w, w, _tft->width() - (2 * w), _tft->height() - (2 * w), ST7735_GREEN);
+
+        _tftUpdate->needsBackground = false;
+    }
+
+    // Drive duration
+//    int millis = _elapsed % 1000;
+    int seconds = (_elapsed % 60000) / 1000;
+    _tft->setTextWrap(false);
+    _tft->setCursor(10, 30);
+    _tft->setTextColor(ST7735_YELLOW);
+    _tft->setTextSize(2);
+    _tft->println(seconds);
+
 }
 
 void Display::_modeDrawChannels() {

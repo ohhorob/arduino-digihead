@@ -23,8 +23,25 @@ Packet *Drive::nextPacket() {
     // Buffer knows when it has available all the bytes for a full packet
     if (_packetBuffer->hasPacket()) {
         if (_currentPacket->build()) { // consumes from packetbuffer, extracting the values
+            _incrementNanos(1);
             result = _currentPacket;
         }
     }
     return result;
+}
+
+uint32_t Drive::elapsedMillis() {
+    return (_durationSeconds * 1000) + (_durationNanos / 1000000);
+}
+
+void Drive::_incrementNanos(uint8_t packetCount) {
+    _durationNanos += (packetCount * MTSSERIAL_PACKET_INTERVAL);
+    if (_durationNanos > 0x1000001) {
+        uint32_t seconds = _durationNanos / 1000000;
+        _durationSeconds += seconds;
+        _durationNanos = _durationNanos % 1000000;
+//        Serial.println(']');
+    } else {
+//        Serial.print('.');
+    }
 }

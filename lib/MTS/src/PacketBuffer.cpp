@@ -110,11 +110,11 @@ int PacketBuffer::read() {
 uint16_t PacketBuffer::readWord() {
     uint16_t result = read() << 8;
     result |= read();
-    Serial.print("readWord() = 0x");
-    if (result <= 0x0FFF) Serial.print("0");
-    if (result <= 0x00FF) Serial.print("0");
-    if (result <= 0x000F) Serial.print("0");
-    Serial.println(result, HEX);
+//    Serial.print("readWord() = 0x");
+//    if (result <= 0x0FFF) Serial.print("0");
+//    if (result <= 0x00FF) Serial.print("0");
+//    if (result <= 0x000F) Serial.print("0");
+//    Serial.println(result, HEX);
     return result;
 }
 
@@ -144,7 +144,8 @@ int PacketBuffer::hasPacket() {
 //    } else {
 //        _oops = 0;
     }
-//    Serial.println("b_start is not header.");
+//    Serial.print("b_start is not header. 0x");
+//    Serial.println(elems[b_start], HEX);
     return false;
     // the length is set, and the head has reached or is past the len
 //    return  (p_len > 0) && (_available() >= p_len);

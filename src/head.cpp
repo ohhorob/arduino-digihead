@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Display.h>
 
-#define PRINT true
+#define PRINT false
 
 // Pins in use
 /**
@@ -127,7 +127,7 @@ void setup() {
     display.setupChannel(1, MTS10BIT_MAX); // AFM; up to ~4V
     display.setupChannel(2, 480); // O2; up to ~1.2V
     display.setupChannel(3, MTS10BIT_MAX);
-    display.setupChannel(4, MTS10BIT_MAX);
+//    display.setupChannel(4, MTS10BIT_MAX);
 
     // Waits until USB is connected
 #if PRINT
@@ -288,9 +288,10 @@ void maintainDrive() {
             display.setChannel(1, p->channel[1]);
             display.setChannel(2, p->channel[2]);
             display.setChannel(3, p->channel[3]);
-            display.setChannel(4, p->channel[4]);
+//            display.setChannel(4, p->channel[4]);
         }
     }
+    display.setElapsed(drive.elapsedMillis());
 }
 
 
