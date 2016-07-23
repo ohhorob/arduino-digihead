@@ -30,18 +30,35 @@ Packet *Drive::nextPacket() {
     return result;
 }
 
+// 1000 micros make a milli
+const uint32_t DURATIONMILLI = 1000;
+// 1000 millis make a full second
+const uint32_t DURATIONSECOND = 1000 * DURATIONMILLI;
+// 60 seconds make a minute
+const uint32_t DURATIONMINUTE = 60 * DURATIONSECOND;
+
 uint32_t Drive::elapsedMillis() {
-    return (_durationSeconds * 1000) + (_durationNanos / 1000000);
+    return (_durationSeconds * 1000) + (_durationMicros / DURATIONMILLI);
 }
 
+// MTSSERIAL_PACKET_INTERVAL is in micro seconds (1/1000 milli)
+// - 81.92 millis == 81920 micros
+
+const uint32_t DURATIONMICROROLL = 10 * DURATIONSECOND;
 void Drive::_incrementNanos(uint8_t packetCount) {
-    _durationNanos += (packetCount * MTSSERIAL_PACKET_INTERVAL);
-    if (_durationNanos > 0x1000001) {
-        uint32_t seconds = _durationNanos / 1000000;
+    _durationMicros += (packetCount * MTSSERIAL_PACKET_INTERVAL);
+    // Every minute, re-shuffle into seconds
+    if (_durationMicros >= DURATIONMICROROLL ) {
+        uint32_t seconds = _durationMicros / DURATIONSECOND;
+
+//        Serial.print(_durationMicros);
+//        Serial.print(": seconds=");
+//        Serial.print(seconds);
+
         _durationSeconds += seconds;
-        _durationNanos = _durationNanos % 1000000;
-//        Serial.println(']');
-    } else {
-//        Serial.print('.');
+        _durationMicros = (_durationMicros % DURATIONSECOND);
+
+//        Serial.print(" micros=");
+//        Serial.println(_durationMicros);
     }
 }

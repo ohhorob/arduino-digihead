@@ -19,8 +19,8 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
 
     _pager = {new TFTPager()};
     _pager->mode = 0x00; // Splash/Welcome
-    _pager->nextMode = 0x01;
-    _pager->nextWhen = millis() + 5000; // Menu in 5 seconds
+    _pager->nextMode = 0x04; // Drive time, etc
+    _pager->nextWhen = millis() + 50; // Menu in 5 seconds
     _pager->changeModeOnDirection = false;
 
     _brightnessPWM = 0;
@@ -45,7 +45,6 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
  * Omiting the call will disable brightness control.
  */
 void Display::setupBrightness(int8_t pwm) {
-    _brightness = 128;
     _brightnessPWM = pwm;
     pinMode(_brightnessPWM, OUTPUT);
 
@@ -59,7 +58,7 @@ void Display::setupBrightness(int8_t pwm) {
     _brightnessBar->height = 14;
     _brightnessBar->y0 = _tft->height() - _brightnessBar->height - inset;
 
-    setBrightness(_brightness);
+    _setBrightness(64);
 }
 
 /**
@@ -342,6 +341,11 @@ void Display::_modeDrawVolts() {
     }
 }
 
+const uint8_t textNormalSize = 2;
+const uint16_t charwidth = 6 * textNormalSize;
+
+int previousSeconds = -1;
+int previousMinutes = -1;
 void Display::_modeDrawDrive() {
     if (_tftUpdate->needsBackground) {
         _tft->fillScreen(DISPLAY_BACKGROUND);
@@ -351,18 +355,47 @@ void Display::_modeDrawDrive() {
         w--;
         _tft->drawRect(w, w, _tft->width() - (2 * w), _tft->height() - (2 * w), ST7735_GREEN);
 
+        previousSeconds = -1;
+        previousMinutes = -1;
         _tftUpdate->needsBackground = false;
     }
 
     // Drive duration
+    int16_t x0 = 10;
+    int16_t y0 = 30;
 //    int millis = _elapsed % 1000;
     int seconds = (_elapsed % 60000) / 1000;
+    int minutes = (_elapsed / 60000);
     _tft->setTextWrap(false);
-    _tft->setCursor(10, 30);
+    _tft->setCursor(x0, y0);
     _tft->setTextColor(ST7735_YELLOW);
-    _tft->setTextSize(2);
-    _tft->println(seconds);
+    _tft->setTextSize(textNormalSize);
+    // Minutes
+    uint16_t minutesWidth = 3 * charwidth;
+    if (previousMinutes != minutes) {
+        _tft->fillRect(x0, y0, minutesWidth - 1, 8 * textNormalSize, ST7735_BLUE);
+        Serial.print("mins x=");
+        Serial.println(_tft->getCursorX());
+        if (minutes < 10) {
+            _tft->print(0);
+        }
+        _tft->print(minutes);
+        _tft->print(":");
+        previousMinutes = minutes;
+    }
 
+    // Seconds
+    if (previousSeconds != seconds) {
+        _tft->setCursor(x0 + minutesWidth, y0);
+        _tft->fillRect(_tft->getCursorX(), y0, 2 * charwidth, 8 * textNormalSize, ST7735_BLUE);
+        Serial.print(" secs x=");
+        Serial.println(_tft->getCursorX());
+        if (seconds < 10) {
+            _tft->print(0);
+        }
+        _tft->print(seconds);
+        previousSeconds = seconds;
+    }
 }
 
 void Display::_modeDrawChannels() {
