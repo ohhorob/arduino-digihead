@@ -63,7 +63,8 @@ ADC *adc = new ADC();
 IntervalTimer timer0;
 RingBuffer *buffer0 = new RingBuffer;
 int startTimerValue0 = 0;
-const int period0 = 1000; // us
+const int period0 = 10000; // us
+// 50,000 is good for infrequent signals
 
 void setupADC();
 void timer0_callback();
@@ -201,7 +202,13 @@ void timer0_callback(void) {
 
 // when the measurement finishes, this will be called
 // first: see which pin finished and then save the measurement into the correct buffer
+//uint8_t isrTick = 0;
 void adc0_isr() {
+//    if (isrTick++ % 2) {
+//        Leds[LED_GREEN].on();
+//    } else {
+//        Leds[LED_GREEN].off();
+//    }
 
     uint8_t pin = ADC::sc1a2channelADC0[ADC0_SC1A&ADC_SC1A_CHANNELS]; // the bits 0-4 of ADC0_SC1A have the channel
 
