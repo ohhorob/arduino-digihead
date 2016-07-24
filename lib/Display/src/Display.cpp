@@ -19,8 +19,9 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
 
     _pager = {new TFTPager()};
     _pager->mode = 0x00; // Splash/Welcome
-    _pager->nextMode = 0x04; // Drive time, etc
-    _pager->nextWhen = millis() + 50; // Menu in 5 seconds
+//    _pager->nextMode = 0x04; // Drive time, etc
+    _pager->nextMode = 0x05; // Status
+    _pager->nextWhen = millis() + 2000; // Switch over in ~2 seconds
     _pager->changeModeOnDirection = false;
 
     _brightnessPWM = 0;
@@ -124,9 +125,14 @@ void Display::directionInput(int16_t delta) {
         if (now - _pager->nextWhen > 100 && abs(accumulatedDirection) >= 5) {
             _tftUpdate->needsUpdate = true;
             _pager->nextWhen = now;
-            _pager->nextMode = _pager->mode + (delta > 0 ? 1 : -1);
-            if (_pager->nextMode > 5) {
-                _pager->nextMode = 5;
+            if (_pager->mode == 0 && delta < 0) {
+                _pager->nextMode = DISPLAY_MAX_MODES;
+            } else {
+                _pager->nextMode = _pager->mode + (delta > 0 ? 1 : -1);
+            }
+
+            if (_pager->nextMode > DISPLAY_MAX_MODES) {
+                _pager->nextMode = 0;
             }
 //            Serial.print("Direction Input nexMode=");
 //            Serial.println(_pager->nextMode);
@@ -197,6 +203,9 @@ void Display::maintain() {
                 case 0x04: // Channels
                     _modeDrawDrive();
                     break;
+                case 0x05: // Status
+                    _modeDrawStatus();
+                    break;
                 default: // Hmmm.. not sure
                     _tft->fillScreen(DISPLAY_BACKGROUND);
                     _tft->setCursor(40, 60);
@@ -230,6 +239,7 @@ void Display::splash() {
     _tft->setTextColor(ST7735_YELLOW);
     _tft->setTextSize(2);
     _tft->println("DigiHead");
+    _tft->print(_tft->width()); _tft->print(" x "); _tft->print(_tft->height());
 }
 
 void Display::_modeDrawBrightness() {
@@ -306,12 +316,34 @@ void Display::setElapsed(uint32_t millis) {
     }
 }
 
+unsigned long lastCourse = 0;
+
+void Display::setGPSData(long lat, long lon, unsigned long course) {
+    if (_lastLat != lat || _lastLon != lon) {
+        if (_pager->mode == 0x05) {
+            if (!_tftUpdate->needsUpdate) {
+                _tftUpdate->needsUpdate = true;
+            }
+        }
+        _lastLat = lat;
+        _lastLon = lon;
+    }
+    if (_course / 4500 != course / 4500) {
+        _course = course;
+        _tftUpdate->needsUpdate = _pager->mode == 0x05;
+    }
+}
+
+void Display::setTime() {
+
+}
+
 void Display::_modeDrawVolts() {
     if (_tftUpdate->needsBackground) {
         _tft->fillScreen(DISPLAY_BACKGROUND);
 
         // Border
-        _tft->drawRect(2, 2, _tft->width() - 4, _tft->height() - 4, ST7735_GREEN);
+        _renderBorder(2, ST7735_GREEN);
 
         // Tick marks; above and below the bar
         uint8_t major = 20;
@@ -350,10 +382,7 @@ void Display::_modeDrawDrive() {
     if (_tftUpdate->needsBackground) {
         _tft->fillScreen(DISPLAY_BACKGROUND);
         // Border
-        uint32_t w = 3;
-        _tft->drawRect(w, w, _tft->width() - (2 * w), _tft->height() - (2 * w), ST7735_GREEN);
-        w--;
-        _tft->drawRect(w, w, _tft->width() - (2 * w), _tft->height() - (2 * w), ST7735_GREEN);
+        _renderBorder(4, ST7735_GREEN);
 
         previousSeconds = -1;
         previousMinutes = -1;
@@ -368,14 +397,12 @@ void Display::_modeDrawDrive() {
     int minutes = (_elapsed / 60000);
     _tft->setTextWrap(false);
     _tft->setCursor(x0, y0);
-    _tft->setTextColor(ST7735_YELLOW);
+    _tft->setTextColor(ST7735_YELLOW, ST7735_BLACK);
     _tft->setTextSize(textNormalSize);
     // Minutes
     uint16_t minutesWidth = 3 * charwidth;
     if (previousMinutes != minutes) {
-        _tft->fillRect(x0, y0, minutesWidth - 1, 8 * textNormalSize, ST7735_BLUE);
-        Serial.print("mins x=");
-        Serial.println(_tft->getCursorX());
+//        _tft->fillRect(x0, y0, minutesWidth - 1, 8 * textNormalSize, ST7735_BLUE);
         if (minutes < 10) {
             _tft->print(0);
         }
@@ -387,9 +414,7 @@ void Display::_modeDrawDrive() {
     // Seconds
     if (previousSeconds != seconds) {
         _tft->setCursor(x0 + minutesWidth, y0);
-        _tft->fillRect(_tft->getCursorX(), y0, 2 * charwidth, 8 * textNormalSize, ST7735_BLUE);
-        Serial.print(" secs x=");
-        Serial.println(_tft->getCursorX());
+//        _tft->fillRect(x0 + minutesWidth, y0, 2 * charwidth, 8 * textNormalSize, ST7735_BLUE);
         if (seconds < 10) {
             _tft->print(0);
         }
@@ -403,7 +428,7 @@ void Display::_modeDrawChannels() {
         _tft->fillScreen(DISPLAY_BACKGROUND);
 
         // Border
-        _tft->drawRect(2, 2, _tft->width() - 4, _tft->height() - 4, ST7735_BLUE);
+        _renderBorder(3, ST7735_BLUE);
 
         _tftUpdate->needsBackground = false;
     }
@@ -415,6 +440,58 @@ void Display::_modeDrawChannels() {
             fraction /= channelBar->maxValue;
             _renderBar(channelBar, fraction);
         }
+    }
+}
+
+char const *heading[] = {
+              "N ",
+                 "NE",
+                     " E",
+                 "SE",
+              "S ",
+          "SW",
+       "W ",
+          "NW"
+};
+
+void Display::_modeDrawStatus() {
+
+    if (_tftUpdate->needsBackground) {
+        _tft->fillScreen(DISPLAY_BACKGROUND);
+
+        // Border
+        _renderBorder(5, ST7735_MAGENTA);
+
+        _tftUpdate->needsBackground = false;
+    }
+
+    _tft->setCursor(6,6);
+    _tft->setTextWrap(false);
+    _tft->setTextColor(ST7735_WHITE, DISPLAY_BACKGROUND);
+    _tft->setTextSize(textNormalSize);
+
+    // Date/Time
+    // Position
+    _tft->println(_lastLat);
+    _tft->println(_lastLon);
+
+    // Course
+    // 100th of a degree
+    int bearing = _course / 100;
+    if (bearing > 360) {
+        Serial.print("invalid course: ");
+        Serial.println(_course);
+    } else {
+        _tft->setCursor(18, 50);
+        _tft->setTextSize(8);
+        _tft->println(heading[bearing / 45]);
+    }
+}
+
+void Display::_renderBorder(uint8_t width, uint16_t colour) {
+    // Border
+    for (uint8_t w = 1; w <= width; w++) {
+        _tft->drawRect(w, w, _tft->width() - (2 * w), _tft->height() - (2 * w), colour);
     }
 }
 

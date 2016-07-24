@@ -16,6 +16,8 @@
 
 #define DISPLAY_MAX_CHANNELS 8
 
+#define DISPLAY_MAX_MODES 5
+
 // Global Screen State
 typedef struct {
     uint32_t lastUpdate;
@@ -61,6 +63,8 @@ public:
     void setupChannel(uint8_t channel, uint32_t max);
     void setChannel(uint8_t channel, uint32_t value);
     void setElapsed(uint32_t millis);
+    void setGPSData(long lat, long lon, unsigned long course);
+    void setTime();
 
     void splash();
 
@@ -82,12 +86,21 @@ private:
 
     uint32_t _elapsed;
 
+
+    long _lastLat;
+    long _lastLon;
+    unsigned long _course;
+    byte _heading[3];
+    byte _month, _day, _hour, _minute, _second, _hundredths;
+
     void _modeDrawBrightness();
     void _modeDrawMenu();
     void _modeDrawVolts();
     void _modeDrawChannels();
     void _modeDrawDrive();
+    void _modeDrawStatus();
 
+    void _renderBorder(uint8_t width, uint16_t colour);
     void _renderBar(TFTBar *bar, double fraction);
 };
 

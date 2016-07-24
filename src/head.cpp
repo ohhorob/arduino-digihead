@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Display.h>
 
-#define PRINT false
+#define PRINT true
 
 // Pins in use
 /**
@@ -31,11 +31,6 @@
 
 //#define HWSERIAL      Serial2
 //#define HWSERIAL_BAUD 57600
-
-// GPS updates
-
-//#define GPSSERIAL      Serial2
-//#define GPSSERIAL_BAUD ???
 
 // Innovate MTS serial data
 #include <Drive.h>
@@ -106,6 +101,18 @@ Bounce debouncer = Bounce();
 void setupButton();
 void maintainButton();
 
+#include "TinyGPS.h"
+
+// GPS updates
+
+#define GPSSERIAL      Serial3
+#define GPSSERIAL_BAUD 9600
+
+TinyGPS gps;
+
+void setupGps();
+void maintainGps();
+
 #define ANSI_ESCAPE 0x1B
 #define ANSI_LEFT_BRACKET 0x5B
 const uint8_t ERASE_DISPLAY[] = {ANSI_ESCAPE, ANSI_LEFT_BRACKET, '2', 'J'};
@@ -154,6 +161,9 @@ void setup() {
 #if PRINT
     Serial.println("Connected MTS.");
 #endif
+
+    setupGps();
+
     Leds[LED_BOARD].off();
     Leds[LED_RED].off();
     Leds[LED_GREEN].off();
@@ -229,6 +239,9 @@ void adc0_isr() {
     }
 }
 
+void setupGps() {
+    GPSSERIAL.begin(GPSSERIAL_BAUD);
+}
 
 /******* LOOP *******/
 
@@ -237,6 +250,7 @@ void loop() {
     uint32_t now = millis();
     if (now - lastLoop > 10) {
         maintainMTS();
+        maintainGps();
         maintainDrive();
         lastLoop = now;
     }
@@ -314,5 +328,41 @@ void maintainMTS() {
             drive.addBytes((char *) mtsbuffer, incomingRead);
         }
         Leds[LED_BOARD].off();
+    }
+}
+
+long lat, lon;
+unsigned long fix_age, time, date, speed, course;
+unsigned long chars;
+unsigned short sentences, failed_checksum;
+int year;
+byte month, day, hour, minutes, second, hundredths;
+
+void maintainGps() {
+    while (GPSSERIAL.available()) {
+        int g = GPSSERIAL.read();
+        if (gps.encode(g)) {
+            // Packet decoded.
+            // statistics
+            gps.stats(&chars, &sentences, &failed_checksum);
+            // retrieves +/- lat/long in 100000ths of a degree
+            gps.get_position(&lat, &lon, &fix_age);
+            // time in hhmmsscc, date in ddmmyy
+//                gps.get_datetime(&date, &time, &fix_age);
+            // returns speed in 100ths of a knot
+            speed = gps.speed();
+            // course in 100ths of a degree
+            course = gps.course();
+            // split open date/time components
+            gps.crack_datetime(&year, &month, &day, &hour, &minutes, &second, &hundredths, &fix_age);
+
+            display.setGPSData(lat, lon, course);
+//            Serial.print(year); Serial.print("-"); Serial.print(month); Serial.print("-"); Serial.print(day);
+//            Serial.print("T"); Serial.print(hour); Serial.print(":"); Serial.print(minutes); Serial.print(" $ ");
+//            Serial.print(chars); Serial.print(":"); Serial.print(sentences); Serial.print(":"); Serial.print(failed_checksum);
+//            Serial.print("> lat/long  = "); Serial.print(lat); Serial.print("/"); Serial.print(lon);
+//            Serial.print(" course = "); Serial.print(course);
+//            Serial.println();
+        }
     }
 }
