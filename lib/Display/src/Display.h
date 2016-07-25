@@ -55,7 +55,7 @@ public:
     void maintain();
     void directionInput(int16_t delta);
     void pressInput(uint8_t button, boolean pressed);
-    void setupBrightness(int8_t pwm=20);
+    void setupBrightness(uint8_t pwm = 20);
     void changeBrightness(int16_t delta);
     void setBrightness(int16_t b=128);
     void setupVolts(RingBuffer *buffer, uint32_t max);

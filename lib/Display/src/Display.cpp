@@ -19,8 +19,8 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
 
     _pager = {new TFTPager()};
     _pager->mode = 0x00; // Splash/Welcome
-//    _pager->nextMode = 0x04; // Drive time, etc
-    _pager->nextMode = 0x05; // Status
+    _pager->nextMode = 0x04; // Drive time, etc
+//    _pager->nextMode = 0x05; // Status
     _pager->nextWhen = millis() + 2000; // Switch over in ~2 seconds
     _pager->changeModeOnDirection = false;
 
@@ -45,7 +45,7 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
  *
  * Omiting the call will disable brightness control.
  */
-void Display::setupBrightness(int8_t pwm) {
+void Display::setupBrightness(uint8_t pwm) {
     _brightnessPWM = pwm;
     pinMode(_brightnessPWM, OUTPUT);
 
@@ -59,7 +59,7 @@ void Display::setupBrightness(int8_t pwm) {
     _brightnessBar->height = 14;
     _brightnessBar->y0 = _tft->height() - _brightnessBar->height - inset;
 
-    _setBrightness(64);
+    _setBrightness(33);
 }
 
 /**
@@ -77,7 +77,7 @@ void Display::changeBrightness(int16_t delta) {
     } else if (newBrightness >= 255) {
         _setBrightness(255);
     } else {
-        _setBrightness(newBrightness & 0xFF);
+        _setBrightness((uint8_t) (newBrightness & 0xFF));
     }
 }
 
@@ -95,7 +95,7 @@ void Display::setBrightness(int16_t b) {
         } else if (b > 0xFF) {
             b = 0xFF;
         }
-        _setBrightness(b);
+        _setBrightness((uint8_t) (b & 0xFF));
     }
 }
 
@@ -316,8 +316,6 @@ void Display::setElapsed(uint32_t millis) {
     }
 }
 
-unsigned long lastCourse = 0;
-
 void Display::setGPSData(long lat, long lon, unsigned long course) {
     if (_lastLat != lat || _lastLon != lon) {
         if (_pager->mode == 0x05) {
@@ -477,7 +475,7 @@ void Display::_modeDrawStatus() {
 
     // Course
     // 100th of a degree
-    int bearing = _course / 100;
+    unsigned long bearing = _course / 100;
     if (bearing > 360) {
         Serial.print("invalid course: ");
         Serial.println(_course);
@@ -498,7 +496,7 @@ void Display::_renderBorder(uint8_t width, uint16_t colour) {
 void Display::_renderBar(TFTBar *bar, double fraction) {
 //    Serial.println(fraction);
     // Calc fractional width from max width
-    int16_t width = fraction < 1.0 ? (int16_t)((fraction * bar->maxWidth) + 0.5) : bar->maxWidth;
+    uint16_t width = (fraction < 1.0 ? (uint16_t)(fraction * bar->maxWidth + 0.5) : bar->maxWidth);
 
     int16_t maxHeight = bar->y0 + bar->height;
 
