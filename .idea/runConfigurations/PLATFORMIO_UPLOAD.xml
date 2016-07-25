@@ -1,0 +1,6 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="PLATFORMIO_UPLOAD" type="CMakeRunConfiguration" factoryName="Application" activateToolWindowBeforeRun="false" singleton="true" WORKING_DIR="" PASS_PARENT_ENVS_2="true" PROJECT_NAME="digihead" TARGET_NAME="PLATFORMIO_UPLOAD" CONFIG_NAME="Debug">
+    <envs />
+    <method />
+  </configuration>
+</component>
