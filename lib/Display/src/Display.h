@@ -7,6 +7,7 @@
 #include <SPI.h>
 #include <RingBuffer.h>
 
+#define INITR_144GREENTAB   0x1
 
 // Update interval
 
