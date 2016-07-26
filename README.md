@@ -14,3 +14,16 @@ On a Mac, use `homebrew` to install PlatformIO.
 
 I use IntelliJ CLion IDE. The integration with PlatformIO is decent, and seems to be getting better.
 
+
+
+## In Progress List
+
+### Packet reader
+
+Adopt packetisation srategy like TinyGPS; add a byte and result is if that completed a packet
+
+
+## TODO List
+
+### Drive summary
+
