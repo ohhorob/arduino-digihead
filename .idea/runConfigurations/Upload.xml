@@ -1,0 +1,6 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Upload" type="CMakeRunConfiguration" factoryName="Application" singleton="true" PROGRAM_PARAMS="-mmcu=mk20dx256 -w -s -v .pioenvs/teensy31/firmware.hex" WORKING_DIR="file://$PROJECT_DIR$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="digihead" TARGET_NAME="PLATFORMIO_BUILD" CONFIG_NAME="Debug" RUN_PATH="$USER_HOME$/.platformio/packages/tool-teensy/teensy_loader_cli">
+    <envs />
+    <method />
+  </configuration>
+</component>
