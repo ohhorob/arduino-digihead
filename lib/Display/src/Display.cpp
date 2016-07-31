@@ -1,3 +1,4 @@
+#include <SPI.h>
 #include "Display.h"
 
 #define DEBUG true

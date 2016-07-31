@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <Adafruit_ST7735.h>
 #include <Adafruit_GFX.h>
-#include <SPI.h>
 #include <RingBuffer.h>
 
 #define INITR_144GREENTAB   0x1
