@@ -132,10 +132,13 @@ void setup() {
 
     display.setupBrightness(TFT_LITE);
     display.setupChannel(0, 8191); // Lambda
-    display.setupChannel(1, MTS10BIT_MAX); // AFM; up to ~4V
-    display.setupChannel(2, 480); // O2; up to ~1.2V
+    // Aux1 => not connected
+    // Aux2 => Injector Pulse Width
+    display.setupChannel(1, MTS10BIT_MAX);
+    // Aux3 => O2; up to ~1.2V
+    display.setupChannel(2, 480);
+    // Aux4 => AFM; up to ~4V
     display.setupChannel(3, MTS10BIT_MAX);
-//    display.setupChannel(4, MTS10BIT_MAX);
 
     // Waits until USB is connected
 #if PRINT
