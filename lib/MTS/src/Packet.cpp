@@ -1,67 +1,79 @@
 
-
 #include "Packet.h"
 
-Packet::Packet(PacketBuffer *buffer) {
-    _buffer = buffer;
+
+MTS::Funtion &
+operator++( MTS::Funtion& target )
+{
+    target = static_cast<MTS::Funtion >(target + 1);
+    return target ;
 }
 
-bool Packet::build() {
+Packet::Packet() {
+}
+
+uint8_t Packet::PacketLength(uint16_t header) {
+    uint8_t wordLength = ((header & MTS_HEADERLEN_HIBITS) >> 1) | (header & MTS_HEADERLEN_LOBITS);
+    return (wordLength * 2) + 2; // Double for packets; add two for header word inclusive
+}
+
+void Packet::build(byte *buffer) {
     // Should only be called when the buffer has enough bytes to decode the packet
-//    Serial.println("!! BUILD !!");
-    _decode();
-    return true;
+    // Header: recording, length
+    uint8_t b = 0;
+    uint16_t header = buffer[b++] << 8 | buffer[b++];
+    uint8_t len = PacketLength(header);
+
+    recording = (header & MTS_RECORDINGBITS) == MTS_RECORDINGBITS;
+
+    type = static_cast<MTS::Type >((header & MTS_HEADERTYPEBITS) >> 12);
+
+    switch (type) {
+        case MTS::Type ::RESPONSE:
+            _buildResponsePacket(&buffer[b], len - 2);
+            break;
+        case MTS::Type ::SENSOR:
+            _buildSensorPacket(&buffer[b], len - 2);
+            break;
+    }
 }
 
-void Packet::_decode() {
-    // Header: recording, length
-    uint16_t header = _buffer->readWord();
-    _byteLength = PacketBuffer::PacketLength(header);
-//    Serial.print("_decoding bytes len="); Serial.println(_byteLength);
+void Packet::_buildSensorPacket(byte *buffer, uint8_t len) {
 
-    uint8_t b = 2;
-
-    // Status: function, afr multiplier
-    uint16_t status = _buffer->readWord();
-    if ((status & 0x4200) == 0x4200) {
-        _function =       (status & 0b0001110000000000) >> 10;
-        _afrMultiplier  = (status & 0b0000000100000000) >>  8; // High bytes
-        _afrMultiplier |= (status & 0b0000000001111111);       // Low bytes
-        b += 2;
-
-        // Lambda: 13 bit value with clear bit @7
-        // h=00LLLLLL l=0LLLLLLLL
-        // shift high down one, or simply bring it up by 7
-        lambda  = _buffer->read() << 7; // High
-        lambda |= _buffer->read();
-        b += 2;
-
-    } else {
-        _function = 0;
-        _afrMultiplier = 0;
-        lambda = 0;
-    }
-
-    // Word by word each additional channel if present
     channelCount = 0;
-    for(; b < _byteLength; b+=2, channelCount++) {
-        // Aux n: 13 bit value
-        uint16_t auxword = _buffer->readWord();
-        uint32_t value = (auxword & 0xFF00) >> 1;
-//        if (channelCount == 2) {
-//            Serial.print(value, HEX); Serial.print(" + "); Serial.print(auxword & 0x00FF, HEX);
-//        }
-        value |= (auxword & 0x00FF);
-        channel[channelCount] =  value;
-//        if (channelCount == 2) {
-//            Serial.print("; ch[");
-//            Serial.print(channelCount);
-//            Serial.print("] = ");
-//
-//            if (channel[channelCount] <= 0x0FFF) Serial.print("0");
-//            if (channel[channelCount] <= 0x00FF) Serial.print("0");
-//            if (channel[channelCount] <= 0x000F) Serial.print("0");
-//            Serial.println(channel[channelCount], HEX);
-//        }
+
+    uint8_t b = 0;
+    while (b < len) {
+        uint16_t w = buffer[b++] << 8 | buffer[b++];
+        if ((w & MTS_FUNCTIONMAGIC) == MTS_FUNCTIONMAGIC) {
+            // LC-2 function/status word
+            _function = static_cast<MTS::Funtion >((w & MTS_FUNCTIONBITS) >> 10);
+            _afrMultiplier  = (w & MTS_AFR_HIBITS) >> 1;
+            _afrMultiplier |= (w & MTS_AFR_LOBITS);
+
+            // consume next word as LC-2 lambda
+            lambda = buffer[b++] << 7 | buffer[b++]; // bit 7 is empty
+#ifdef PACKETDEBUG
+            Serial.print(" Function="); Serial.print(_function, BIN);
+            Serial.print(" AFR="); Serial.print(_afrMultiplier);
+            Serial.print(" Lambda="); Serial.println(lambda);
+#endif // PACKETDEBUG
+        } else {
+            // Aux words
+            channel[channelCount++] = (w & 0xFF00) >> 1 | (w & 0x00FF); // bit 7 is empty
+#ifdef PACKETDEBUG
+            Serial.print(" AUX"); Serial.print(channelCount - 1); Serial.print("=");
+            Serial.print(channel[channelCount - 1]);
+#endif // PACKETDEBUG
+        }
     }
+#ifdef PACKETDEBUG
+    Serial.println();
+#endif
+}
+
+void Packet::_buildResponsePacket(byte *buffer, uint8_t len) {
+    uint16_t w = buffer[0] << 8 | buffer[1];
+    command = ((w & MTS_CMD_HIBITS) >> 1) | (w & MTS_CMD_LOBITS);
+
 }

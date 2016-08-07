@@ -31,6 +31,11 @@
 // include new and delete
 #include <Arduino.h>
 
+#include "ByteBuffer.h"
+#include "Packet.h"
+
+//#define PBDEBUG
+
 // THE SIZE MUST BE A POWER OF 2!!
 #define MTS_PACKETBUFFER_DEFAULT_BUFFER_SIZE 128
 
@@ -40,7 +45,6 @@
 */
 class PacketBuffer {
 public:
-    static int PacketLength(uint16_t header);
 
     //! Default constructor, buffer has a size DEFAULT_BUFFER_SIZE
     PacketBuffer();
@@ -55,36 +59,30 @@ public:
     int isEmpty();
 
     //! Write a value into the buffer
-    void write(int value);
-
-    //! Convenience to dump a few bytes into the buffer
-    void write(byte *values, int len);
+    void write(Packet *value);
 
     //! Read a value from the buffer
-    int read();
+    Packet *read();
 
-    uint16_t readWord();
-
-    int hasPacket();
+    void newByte(uint8_t value);
 
 protected:
 private:
 
-    int increase(int p);
+    ByteBuffer *_bytes;
 
-    int _available();
+    int increase(int p);
 
     int b_size = MTS_PACKETBUFFER_DEFAULT_BUFFER_SIZE;
     int b_start = 0;
     int b_end = 0;
-    //int *elems;
-    // TODO: check if this element array can be changed to uint8_t or bytes to avoid wasting memory
-    int elems[MTS_PACKETBUFFER_DEFAULT_BUFFER_SIZE];
 
+    Packet *nextWrite();
+
+    Packet *elems[MTS_PACKETBUFFER_DEFAULT_BUFFER_SIZE];
+
+    // Track number of bytes to accumulate into bytebuffer before decoding packet
     int p_len = 0;
-    int p_avilable = false;
-
-    void _debugPacket();
 };
 
 

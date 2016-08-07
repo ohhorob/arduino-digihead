@@ -6,28 +6,25 @@
 
 Drive::Drive() {
     _packetBuffer = new PacketBuffer();
-    _currentPacket = new Packet(_packetBuffer);
 }
 
-void Drive::addBytes(char *buffer, uint8_t len) {
-    // Accumulate bytes into the packet buffer
-    // It contains logic for knowing when a packet header is found, and how many bytes are required to build it
-    _packetBuffer->write((byte *)buffer, len);
+boolean Drive::encode(uint8_t value) {
+    // Pass the new byte onto PacketBuffer
+    // If this byte completes a packet, it will be decoded and added to the ring buffer
+    _packetBuffer->newByte(value);
+    // There are packets waiting to be consumed when the buffer is not empty
+    return !_packetBuffer->isEmpty();
 }
 
 // Simple single-packet strategy for nextPacket()
 // TODO: find a way to have a packet queue without having to do memory management?
 // TODO: maybe keep a list of pointers to the packetbuffer where packets start?
 Packet *Drive::nextPacket() {
-    Packet *result = nullptr;
-    // Buffer knows when it has available all the bytes for a full packet
-    if (_packetBuffer->hasPacket()) {
-        if (_currentPacket->build()) { // consumes from packetbuffer, extracting the values
-            _incrementNanos(1);
-            result = _currentPacket;
-        }
+    if (!_packetBuffer->isEmpty()) {
+        _incrementNanos(1);
+        return _packetBuffer->read();
     }
-    return result;
+    return nullptr;
 }
 
 // 1000 micros make a milli

@@ -17,7 +17,7 @@
 class Drive {
 public:
     Drive();
-    void addBytes(char *buffer, uint8_t len);
+    boolean encode(uint8_t value);
     Packet *nextPacket();
 
     uint32_t elapsedMillis();

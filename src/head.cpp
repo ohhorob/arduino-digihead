@@ -2,6 +2,7 @@
 #include <Display.h>
 
 #define PRINT true
+//#define TESTMTS
 
 // Pins in use
 /**
@@ -41,6 +42,9 @@ byte mtsbuffer[RECBUFF];
 
 // Keep a small buffer for reading bytes from MTSSERIAL
 void maintainMTS(); // Feed available serial data to Drive packet buffer
+#ifdef TESTMTS
+void testMTS();
+#endif // TESTMTS
 
 Drive drive;
 void maintainDrive(); // Detect newly arrived packets
@@ -170,6 +174,9 @@ void setup() {
     Leds[LED_BOARD].off();
     Leds[LED_RED].off();
     Leds[LED_GREEN].off();
+#ifdef TESTMTS
+    testMTS();
+#endif // TESTMTS
 }
 
 /**
@@ -302,7 +309,10 @@ void maintainLeds() {
     }
 }
 
-// When a new packet has been found, push parts of it into the display
+
+Packet *p;
+
+// When a packets are available, push parts of it into the display
 // TODO: feed values into drive statistics (avg/min/max/etc)
 void maintainDrive() {
     while(Packet *p = drive.nextPacket()) {
@@ -318,21 +328,48 @@ void maintainDrive() {
     display.setElapsed(drive.elapsedMillis());
 }
 
-
+// Push all available MTS bytes to the drive
+// if that results in packets being decoded, they will be buffered in the Drive packetbuffer!
 void maintainMTS() {
-//    Leds[LED_BOARD].on();
-    // TODO: Move serial input to interrupt timer
-    int incomingAvailable = MTSSERIAL.available();
-    if (incomingAvailable > 0) {
-        Leds[LED_BOARD].on();
-        uint8_t incomingRead = (uint8_t) MTSSERIAL.readBytes((char *) mtsbuffer, (size_t) incomingAvailable);
-        if (incomingRead > 0) {
-            // hand over bytes to packet buffer
-            drive.addBytes((char *) mtsbuffer, incomingRead);
-        }
-        Leds[LED_BOARD].off();
+    while (MTSSERIAL.available()) {
+        uint8_t m = (uint8_t) (MTSSERIAL.read() & 0xFF);
+        drive.encode(m);
     }
 }
+
+#ifdef TESTMTS
+int incoming[] = {0x27, 0x39, 0x00, 0xB2, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x7A, 0xB2, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x7A};
+//                  --    --    --    HH    HH    a0    a0    a1    a1    a2    a2    a3    a3    HH    HH    a0    a0    a1    a1    a2    a2    a3    a3
+void testMTS() {
+    size_t intSize = sizeof(int);
+//    Serial.print("sizeof(int) == "); Serial.println(intSize, DEC);
+//    Serial.print("sizeof(uint8_t) == "); Serial.println(sizeof(uint8_t), DEC);
+//    Serial.print("sizeof(uint16_t) == "); Serial.println(sizeof(uint16_t), DEC);
+    Serial.print("sizeof(Packet) == "); Serial.println(sizeof(Packet), DEC);
+
+//    Serial.println("MTS::Function >");
+//    for (uint8_t f = MTS::Funtion::NORMAL; f <= MTS::Funtion::RESERVED; f++) {
+//        Serial.print(f < 0b100 ? f < 0b10 ? "0b00" : "0b0" : "0b"); Serial.println(f, BIN);
+//    }
+//    Serial.println();
+
+    // Feed predefined byte sequences to verify packet decoding
+    for(int i = 0; i < sizeof(incoming) / intSize; i++) {
+        uint8_t in = (uint8_t) (incoming[i] & 0xFF);
+        Serial.print(i < 10 ? "[0" : "["); Serial.print(i); Serial.print("] ");
+        Serial.print(in > 0xF ? "0x" : "0x0");
+        Serial.print(in, HEX); Serial.print(" > ");
+
+        drive.encode(in);
+
+        if (Packet *p = drive.nextPacket()) {
+            Serial.print("FOUND PACKET >> ");
+            Serial.print(p->channelCount); Serial.println(" channels");
+        }
+    }
+    Serial.println("Finished testMTS");
+}
+#endif // TESTMTS
 
 long lat, lon;
 unsigned long fix_age, time, date, speed, course;
