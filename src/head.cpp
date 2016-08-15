@@ -170,6 +170,50 @@ void setup() {
     Serial.println("Connected MTS.");
 #endif
 
+#ifdef QUERYMTS
+//    6E
+//    53 53 53 53 53 53 53 53 = 8
+//    63
+//    53 53 63 6E 00 0A 00 00 6E CE F3 01 00 10 29 45 03 01 03 E8 03 01 44 00 01 01 EC B1 FA 43 03 01 40 0D 03 00 24 10 00 00 D0 07 00 00 CE 56 00 00 FF FF FF FF 00 00 00 00 00 00 00 00 00 00 00 = 63
+//    53
+//    10 0F 53 53 49 34 05 04 FC 00 00 00 05 00 00 = 15
+    uint8_t commands[] = {MTS_CMD_NAME_GET, MTS_CMD_CONFIG_GET, MTS_CMD_SETUP_START};
+    uint16_t c = 0;
+    boolean responseFound = false;
+    uint8_t responseBuffer[64];
+    while (!responseFound) {
+        Leds[LED_GREEN].on();
+        uint8_t cmd = commands[c++ % (sizeof(commands) / sizeof(uint8_t))];
+        MTSSERIAL.write(cmd);
+        Serial.println(cmd, HEX);
+//        Serial.println("Wrote command to MTS.");
+        delay(500);
+        Leds[LED_GREEN].off();
+        uint8_t r = 0;
+        while (MTSSERIAL.available()) {
+            uint8_t m = (uint8_t) (MTSSERIAL.read() & 0xFF);
+//            drive.encode(m);
+            responseBuffer[r++] = m;
+            Serial.print(m < 0x10 ? " 0" : " "); Serial.print(m, HEX);
+        }
+        Serial.print(" = "); Serial.print(r);
+        Serial.println();
+        for (uint8_t s = r; s < sizeof(responseBuffer); s++) {
+            responseBuffer[s] = 0;
+        }
+//        while(Packet *p = drive.nextPacket()) {
+//            if (p->type != MTS::Type::SENSOR) {
+//                Serial.println("Response");
+//                responseFound = true;
+//            } else {
+//                digitalWriteFast(19, digitalReadFast(19) == HIGH ? LOW : HIGH);
+//            }
+//        }
+//        Serial.println();
+//        maintainLeds();
+    }
+#endif
+
     setupGps();
 
     Leds[LED_BOARD].off();
@@ -178,6 +222,20 @@ void setup() {
 #ifdef TESTMTS
     testMTS();
 #endif // TESTMTS
+    uint8_t p = 3;
+    pinMode(p, OUTPUT);
+    int t = 5; // volume
+    float f = 500.0;
+    analogWriteFrequency(p, f);
+    analogWrite(p, t);
+    while (f < 3800.0) {
+        analogWriteFrequency(p, f);
+        analogWrite(p, t);
+//        tone(3, t, 100);
+        f += 300;
+        delay(20);
+    }
+    analogWrite(3, 0);
 }
 
 /**
@@ -249,6 +307,7 @@ void adc0_isr() {
         adc->adc0->adcWasInUse = (uint8_t) false;
     }
 }
+#pragma clang diagnostic pop
 
 void setupGps() {
     GPSSERIAL.begin(GPSSERIAL_BAUD);
@@ -317,13 +376,31 @@ Packet *p;
 // TODO: feed values into drive statistics (avg/min/max/etc)
 void maintainDrive() {
     while(Packet *p = drive.nextPacket()) {
-        // Process the packet by sending it's values to display for processing
-        display.setChannel(0, p->lambda);
-        if (p->channelCount >= 2) {
-            display.setChannel(1, p->channel[1]);
-            display.setChannel(2, p->channel[2]);
-            display.setChannel(3, p->channel[3]);
+        if (p->type == MTS::Type::SENSOR) {
+            if (p->function == MTS::Funtion::NORMAL) {
+                Leds[LED_RED].off();
+                Leds[LED_GREEN].off();
+                analogWrite(3, 0);
+                display.setChannel(0, p->lambda);
+            } else if (p->function != MTS::Funtion::WARMUP_STARTED) {
+//                analogWrite(3, 20);
+                display.setChannel(0, (uint32_t)(p->lambda / 10.0));
+                Leds[LED_RED].on();
+            } else {
+                display.setChannel(0, (uint32_t )(p->lambda / 100.0));
+                Leds[LED_GREEN].on();
+            }
+            // Process the packet by sending it's values to display for processing
+            if (p->channelCount >= 2) {
+                display.setChannel(1, p->channel[1]);
+                display.setChannel(2, p->channel[2]);
+                display.setChannel(3, p->channel[3]);
 //            display.setChannel(4, p->channel[4]);
+            }
+        } else {
+#if PRINT
+            Serial.println("Command Response!");
+#endif
         }
     }
     display.setElapsed(drive.elapsedMillis());

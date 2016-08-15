@@ -17,6 +17,12 @@ uint8_t Packet::PacketLength(uint16_t header) {
     return (wordLength * 2) + 2; // Double for packets; add two for header word inclusive
 }
 
+Packet Packet::name() {
+    Packet command = Packet();
+    command.command = MTS_CMD_NAME_GET;
+    return command;
+}
+
 void Packet::build(byte *buffer) {
     // Should only be called when the buffer has enough bytes to decode the packet
     // Header: recording, length
@@ -47,7 +53,7 @@ void Packet::_buildSensorPacket(byte *buffer, uint8_t len) {
         uint16_t w = buffer[b++] << 8 | buffer[b++];
         if ((w & MTS_FUNCTIONMAGIC) == MTS_FUNCTIONMAGIC) {
             // LC-2 function/status word
-            _function = static_cast<MTS::Funtion >((w & MTS_FUNCTIONBITS) >> 10);
+            function = static_cast<MTS::Funtion >((w & MTS_FUNCTIONBITS) >> 10);
             _afrMultiplier  = (w & MTS_AFR_HIBITS) >> 1;
             _afrMultiplier |= (w & MTS_AFR_LOBITS);
 
