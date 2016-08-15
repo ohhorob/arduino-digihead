@@ -31,15 +31,11 @@
 
 // Host comms for data exchange with computer
 
-//#define HWSERIAL      Serial2
-//#define HWSERIAL_BAUD 57600
 
 // Innovate MTS serial data
+// Use Serial1 for UART buffer
 #include <Drive.h>
-#define MTSSERIAL      Serial2
-
-#define RECBUFF 64
-byte mtsbuffer[RECBUFF];
+#define MTSSERIAL Serial1
 
 // Keep a small buffer for reading bytes from MTSSERIAL
 void maintainMTS(); // Feed available serial data to Drive packet buffer
@@ -86,6 +82,9 @@ void setupLeds();
 
 Display display = Display();
 
+void setupDisplay();
+void maintainDisplay();
+
 #include <Encoder.h>
 
 // Encoder
@@ -122,43 +121,30 @@ void maintainGps();
 #define ANSI_LEFT_BRACKET 0x5B
 const uint8_t ERASE_DISPLAY[] = {ANSI_ESCAPE, ANSI_LEFT_BRACKET, '2', 'J'};
 
+#ifndef UNIT_TEST
 void setup() {
     setupLeds();
     setupButton();
     setupADC();
-    display.setupVolts(buffer0, adc->getMaxValue(0));
-
-    // Indicate startup with all Leds
-    Leds[LED_BOARD].flash(9999);
-    Leds[LED_RED].flash(9999);
-    Leds[LED_GREEN].flash(10);
 
     Serial.begin(19200);  // USB, communication to PC or Mac
 
-    display.setupBrightness(TFT_LITE);
-    display.setupChannel(0, 8191); // Lambda
-    // Aux1 => not connected
-    // Aux2 => Injector Pulse Width
-    display.setupChannel(1, MTS10BIT_MAX);
-    // Aux3 => O2; up to ~1.2V
-    display.setupChannel(2, 480);
-    // Aux4 => AFM; up to ~4V
-    display.setupChannel(3, MTS10BIT_MAX);
+    setupDisplay();
 
-    // Waits until USB is connected
-#if PRINT
-    while(!Serial) {
+    // Waits until USB is connected (only for two seconds
+    while(!Serial && millis() < 2000) {
         maintainLeds();
         delay(20);
     }
-#endif // PRINT
 
     display.splash();
 
 #if PRINT
-    Serial.write(ERASE_DISPLAY, 4);
+    if (Serial) {
+        Serial.write(ERASE_DISPLAY, 4);
 
-    Serial.println("Connected USB.");
+        Serial.println("Connected USB.");
+    }
 #endif // PRINT
 
     MTSSERIAL.begin(MTSSERIAL_BAUD);
@@ -237,6 +223,23 @@ void setup() {
     }
     analogWrite(3, 0);
 }
+#endif // UNIT_TEST
+
+void setupDisplay() {
+    display.setupBrightness(TFT_LITE);
+
+    display.setupVolts(buffer0, adc->getMaxValue(0));
+
+    display.setupChannel(0, 8191); // Lambda
+    // Aux1 => not connected
+    // Aux2 => Injector Pulse Width
+    display.setupChannel(1, MTS10BIT_MAX);
+    // Aux3 => O2; up to ~1.2V
+    display.setupChannel(2, 110);
+    // Aux4 => AFM; up to ~4V
+    display.setupChannel(3, MTS10BIT_MAX);
+}
+
 
 /**
  * Configure the Leds[] collection
@@ -279,15 +282,12 @@ void timer0_callback(void) {
     adc->startSingleRead(ADC_POT, ADC_0); // also: startSingleDifferential, analogSynchronizedRead, analogSynchronizedReadDifferential
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 // when the measurement finishes, this will be called
 // first: see which pin finished and then save the measurement into the correct buffer
 //uint8_t isrTick = 0;
 void adc0_isr() {
-//    if (isrTick++ % 2) {
-//        Leds[LED_GREEN].on();
-//    } else {
-//        Leds[LED_GREEN].off();
-//    }
 
     uint8_t pin = ADC::sc1a2channelADC0[ADC0_SC1A&ADC_SC1A_CHANNELS]; // the bits 0-4 of ADC0_SC1A have the channel
 
@@ -315,6 +315,7 @@ void setupGps() {
 
 /******* LOOP *******/
 
+#ifndef UNIT_TEST
 uint32_t lastLoop = millis();
 void loop() {
     uint32_t now = millis();
@@ -329,6 +330,8 @@ void loop() {
     maintainButton();
     display.maintain();
 }
+
+#endif // UNIT_TEST
 
 int32_t previousValue;
 
@@ -460,11 +463,20 @@ void maintainGps() {
     while (GPSSERIAL.available()) {
         int g = GPSSERIAL.read();
         if (gps.encode(g)) {
+
+            // TODO: Provide bearing and velocity to Display
+
+            // TODO: Forward GPS details to Drive session
+
             // Packet decoded.
             // statistics
             gps.stats(&chars, &sentences, &failed_checksum);
+            // TODO: accumulate rolling count of failed checksums
+
             // retrieves +/- lat/long in 100000ths of a degree
             gps.get_position(&lat, &lon, &fix_age);
+            // TODO: Notify display if fix_age is too old
+
             // time in hhmmsscc, date in ddmmyy
 //                gps.get_datetime(&date, &time, &fix_age);
             // returns speed in 100ths of a knot
