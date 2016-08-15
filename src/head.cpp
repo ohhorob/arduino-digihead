@@ -1,23 +1,24 @@
 #include <Arduino.h>
 #include <Display.h>
 
-#define PRINT true
+#define PRINT false
 //#define TESTMTS
+//#define QUERYMTS
 
 // Pins in use
 /**
- *  00 RX1 ..(CP2102)
- *  01 TX1 ..
- *  02                        * 23 ENC_B - Rotary B
- *  03                        * 22 ENC_A - Rotary A
- *  04                        * 21 Potentiometer
- *  05                        * 20 PWM - TFT:LITE <grey?>
- *  06 ENC_BTN <orange>       * 19 LED_GREEN <purple> 330ohm
- *  07 RX3 MTS <green>        * 18 LED_RED   <blue>   220ohm
- *  08 TX3 MTS <yellow>       * 17 TFT:RS  <blue>   D/C
+ *  00 RX1 MTS <green>        * AGND
+ *  01 TX1 MTS <yellow>       * 3v3 - RS232 Level Shift VCC <red>
+ *  02                        * 23 ENC_B - Rotary B <orange>
+ *  03 Buzzer <brown>         * 22 ENC_A - Rotary A <yellow>
+ *  04                        * 21 Potentiometer <green>
+ *  05                        * 20 PWM - TFT:LITE <grey>
+ *  06 ENC_BTN <orange>       * 19 LED_RED   <blue>   330ohm
+ *  07 RX3                    * 18 LED_GREEN <purple> 220ohm
+ *  08 TX3                    * 17 TFT:RS  <blue>   D/C
  *  09 RX2 .. (GPS)           * 16 TFT:RST <green>  RST
  *  10 TX2 .. (GPS)           * 15 SPI:CS  <yellow> TCS
- *  11 SPI:DOUT <orange> SI   * 14 SPI:SCK <grey?>  SCK
+ *  11 SPI:DOUT <orange> SI   * 14 SPI:SCK <brown>  SCK
  *  12 SPI:DIN  <red>    SO   * 13 LED_BOARD
  *
  *  [[ underside  ]]
@@ -51,7 +52,7 @@ void maintainDrive(); // Detect newly arrived packets
 
 #include <ADC.h>
 // https://forum.pjrc.com/threads/25532-ADC-library-update-now-with-support-for-Teensy-3-1
-#include "RingBuffer.h"
+
 // and IntervalTimer
 #include <IntervalTimer.h>
 
