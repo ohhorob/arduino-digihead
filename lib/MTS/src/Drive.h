@@ -29,8 +29,6 @@ private:
     uint32_t _durationSeconds;
     uint32_t _durationMicros;
     void _incrementNanos(uint8_t packetCount);
-
-    void _debugPacket();
 };
 
 

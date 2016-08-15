@@ -5,6 +5,8 @@ Head unit for display of Digijet/Digifant ECU signals captured with arduino-digi
 
 https://github.com/ohhorob/arduino-digihead/wiki
 
+https://www.sparkfun.com/products/11189
+
 
 ## Development Setup
 
@@ -20,7 +22,8 @@ I use IntelliJ CLion IDE. The integration with PlatformIO is decent, and seems t
 
 ### Packet reader
 
-Adopt packetisation srategy like TinyGPS; add a byte and result is if that completed a packet
+Packet decoding updated to ready single bytes in a byte buffer. When the buffer has enough bytes for the whole packet,
+the packet class builds into a packet buffer.
 
 
 ## TODO List

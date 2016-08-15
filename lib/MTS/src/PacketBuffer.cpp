@@ -35,8 +35,14 @@ void _showBuffer(ByteBuffer *buffer) {
 }
 
 void PacketBuffer::newByte(uint8_t value) {
-
-    _bytes->put(value);
+    if (_bytes->getSize() != 0 || (value != 0x00 && value != 0xFF)) {
+        _bytes->put(value);
+#ifdef PBDEBUG
+    } else {
+        Serial.print("Discarded leading garbage byte: 0x");
+        Serial.println(value, HEX);
+#endif // PBDEBUG
+    }
 
 #ifdef PBDEBUG
     _showBuffer(_bytes);

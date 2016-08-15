@@ -1,6 +1,3 @@
-//
-// Created by Rob Wills on 7/16/16.
-//
 
 #include "Drive.h"
 
