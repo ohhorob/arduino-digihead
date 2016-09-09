@@ -60,7 +60,7 @@ public:
     void setBrightness(int16_t b=128);
     void setupVolts(RingBuffer *buffer, uint32_t max);
     void voltsReady(bool ready);
-    void setupChannel(uint8_t channel, uint32_t max);
+    void setupChannel(uint8_t channel, uint32_t max, uint16_t colour=ST7735_YELLOW);
     void setChannel(uint8_t channel, uint32_t value);
     void setElapsed(uint32_t millis);
     void setGPSData(long lat, long lon, unsigned long course);

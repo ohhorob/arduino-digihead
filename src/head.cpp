@@ -229,15 +229,21 @@ void setupDisplay() {
     display.setupBrightness(TFT_LITE);
 
     display.setupVolts(buffer0, adc->getMaxValue(0));
-
-    display.setupChannel(0, 8191); // Lambda
-    // Aux1 => not connected
+    uint8_t ch = 0;
+    display.setupChannel(ch++, 8191); // Lambda
     // Aux2 => Injector Pulse Width
-    display.setupChannel(1, MTS10BIT_MAX);
+    display.setupChannel(ch++, MTS10BIT_MAX);
     // Aux3 => O2; up to ~1.2V
-    display.setupChannel(2, 110);
+    display.setupChannel(ch++, 110);
     // Aux4 => AFM; up to ~4V
-    display.setupChannel(3, MTS10BIT_MAX);
+    display.setupChannel(ch++, MTS10BIT_MAX);
+    // Aux1 => ???
+    display.setupChannel(ch++, MTS10BIT_MAX, ST7735_MAGENTA);
+#if PRINT
+    Serial.print("Setup display with ");
+    Serial.print(ch);
+    Serial.println(" channels.");
+#endif // PRINT
 }
 
 
@@ -398,7 +404,7 @@ void maintainDrive() {
                 display.setChannel(1, p->channel[1]);
                 display.setChannel(2, p->channel[2]);
                 display.setChannel(3, p->channel[3]);
-//            display.setChannel(4, p->channel[4]);
+                display.setChannel(4, p->channel[0]);
             }
         } else {
 #if PRINT
