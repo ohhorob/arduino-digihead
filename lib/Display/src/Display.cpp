@@ -20,7 +20,7 @@ Display::Display(int8_t cs, int8_t rs, int8_t rst, int8_t spi_sck)
 
     _pager = {new TFTPager()};
     _pager->mode = 0x00; // Splash/Welcome
-    _pager->nextMode = 0x04; // Drive time, etc
+    _pager->nextMode = 0x03; // Drive time, etc
 //    _pager->nextMode = 0x05; // Status
     _pager->nextWhen = millis() + 2000; // Switch over in ~2 seconds
     _pager->changeModeOnDirection = false;
@@ -271,15 +271,15 @@ void Display::setupVolts(RingBuffer *buffer, uint32_t max) {
     _voltsBar->y0 = _tft->height() - 20 - _voltsBar->height - inset;
 }
 
-void Display::setupChannel(uint8_t channel, uint32_t max) {
+void Display::setupChannel(uint8_t channel, uint32_t max, uint16_t colour) {
     TFTBar *bar = _channelBars[channel];
     bar->maxValue = max;
     bar->value = 0;
-    bar->colour = ST7735_YELLOW;
+    bar->colour = colour;
     uint16_t inset = 3;
     bar->x0 = inset;
     bar->maxWidth = _tft->width() - (2 * inset);
-    bar->height = 29;
+    bar->height = 22;
     bar->y0 = inset + channel * (bar->height + 2);
 }
 

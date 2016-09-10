@@ -1,22 +1,24 @@
 #include <Arduino.h>
 #include <Display.h>
 
-#define PRINT true
+#define PRINT false
+//#define TESTMTS
+//#define QUERYMTS
 
 // Pins in use
 /**
- *  00 RX1 ..(CP2102)
- *  01 TX1 ..
- *  02                        * 23 ENC_B - Rotary B
- *  03                        * 22 ENC_A - Rotary A
- *  04                        * 21 Potentiometer
- *  05                        * 20 PWM - TFT:LITE <grey?>
- *  06 ENC_BTN <orange>       * 19 LED_GREEN <purple> 330ohm
- *  07 RX3 MTS <green>        * 18 LED_RED   <blue>   220ohm
- *  08 TX3 MTS <yellow>       * 17 TFT:RS  <blue>   D/C
+ *  00 RX1 MTS <green>        * AGND
+ *  01 TX1 MTS <yellow>       * 3v3 - RS232 Level Shift VCC <red>
+ *  02                        * 23 ENC_B - Rotary B <orange>
+ *  03 Buzzer <brown>         * 22 ENC_A - Rotary A <yellow>
+ *  04                        * 21 Potentiometer <green>
+ *  05                        * 20 PWM - TFT:LITE <grey>
+ *  06 ENC_BTN <orange>       * 19 LED_RED   <blue>   330ohm
+ *  07 RX3                    * 18 LED_GREEN <purple> 220ohm
+ *  08 TX3                    * 17 TFT:RS  <blue>   D/C
  *  09 RX2 .. (GPS)           * 16 TFT:RST <green>  RST
  *  10 TX2 .. (GPS)           * 15 SPI:CS  <yellow> TCS
- *  11 SPI:DOUT <orange> SI   * 14 SPI:SCK <grey?>  SCK
+ *  11 SPI:DOUT <orange> SI   * 14 SPI:SCK <brown>  SCK
  *  12 SPI:DIN  <red>    SO   * 13 LED_BOARD
  *
  *  [[ underside  ]]
@@ -29,25 +31,24 @@
 
 // Host comms for data exchange with computer
 
-//#define HWSERIAL      Serial2
-//#define HWSERIAL_BAUD 57600
 
 // Innovate MTS serial data
+// Use Serial1 for UART buffer
 #include <Drive.h>
-#define MTSSERIAL      Serial2
-
-#define RECBUFF 64
-byte mtsbuffer[RECBUFF];
+#define MTSSERIAL Serial1
 
 // Keep a small buffer for reading bytes from MTSSERIAL
 void maintainMTS(); // Feed available serial data to Drive packet buffer
+#ifdef TESTMTS
+void testMTS();
+#endif // TESTMTS
 
 Drive drive;
 void maintainDrive(); // Detect newly arrived packets
 
 #include <ADC.h>
 // https://forum.pjrc.com/threads/25532-ADC-library-update-now-with-support-for-Teensy-3-1
-#include "RingBuffer.h"
+
 // and IntervalTimer
 #include <IntervalTimer.h>
 
@@ -80,6 +81,9 @@ void setupLeds();
 #define TFT_LITE   20 // PWM backlight/brightness control
 
 Display display = Display();
+
+void setupDisplay();
+void maintainDisplay();
 
 #include <Encoder.h>
 
@@ -117,43 +121,30 @@ void maintainGps();
 #define ANSI_LEFT_BRACKET 0x5B
 const uint8_t ERASE_DISPLAY[] = {ANSI_ESCAPE, ANSI_LEFT_BRACKET, '2', 'J'};
 
+#ifndef UNIT_TEST
 void setup() {
     setupLeds();
     setupButton();
     setupADC();
-    display.setupVolts(buffer0, adc->getMaxValue(0));
-
-    // Indicate startup with all Leds
-    Leds[LED_BOARD].flash(9999);
-    Leds[LED_RED].flash(9999);
-    Leds[LED_GREEN].flash(10);
 
     Serial.begin(19200);  // USB, communication to PC or Mac
 
-    display.setupBrightness(TFT_LITE);
-    display.setupChannel(0, 8191); // Lambda
-    // Aux1 => not connected
-    // Aux2 => Injector Pulse Width
-    display.setupChannel(1, MTS10BIT_MAX);
-    // Aux3 => O2; up to ~1.2V
-    display.setupChannel(2, 480);
-    // Aux4 => AFM; up to ~4V
-    display.setupChannel(3, MTS10BIT_MAX);
+    setupDisplay();
 
-    // Waits until USB is connected
-#if PRINT
-    while(!Serial) {
+    // Waits until USB is connected (only for two seconds
+    while(!Serial && millis() < 2000) {
         maintainLeds();
         delay(20);
     }
-#endif // PRINT
 
     display.splash();
 
 #if PRINT
-    Serial.write(ERASE_DISPLAY, 4);
+    if (Serial) {
+        Serial.write(ERASE_DISPLAY, 4);
 
-    Serial.println("Connected USB.");
+        Serial.println("Connected USB.");
+    }
 #endif // PRINT
 
     MTSSERIAL.begin(MTSSERIAL_BAUD);
@@ -165,12 +156,96 @@ void setup() {
     Serial.println("Connected MTS.");
 #endif
 
+#ifdef QUERYMTS
+//    6E
+//    53 53 53 53 53 53 53 53 = 8
+//    63
+//    53 53 63 6E 00 0A 00 00 6E CE F3 01 00 10 29 45 03 01 03 E8 03 01 44 00 01 01 EC B1 FA 43 03 01 40 0D 03 00 24 10 00 00 D0 07 00 00 CE 56 00 00 FF FF FF FF 00 00 00 00 00 00 00 00 00 00 00 = 63
+//    53
+//    10 0F 53 53 49 34 05 04 FC 00 00 00 05 00 00 = 15
+    uint8_t commands[] = {MTS_CMD_NAME_GET, MTS_CMD_CONFIG_GET, MTS_CMD_SETUP_START};
+    uint16_t c = 0;
+    boolean responseFound = false;
+    uint8_t responseBuffer[64];
+    while (!responseFound) {
+        Leds[LED_GREEN].on();
+        uint8_t cmd = commands[c++ % (sizeof(commands) / sizeof(uint8_t))];
+        MTSSERIAL.write(cmd);
+        Serial.println(cmd, HEX);
+//        Serial.println("Wrote command to MTS.");
+        delay(500);
+        Leds[LED_GREEN].off();
+        uint8_t r = 0;
+        while (MTSSERIAL.available()) {
+            uint8_t m = (uint8_t) (MTSSERIAL.read() & 0xFF);
+//            drive.encode(m);
+            responseBuffer[r++] = m;
+            Serial.print(m < 0x10 ? " 0" : " "); Serial.print(m, HEX);
+        }
+        Serial.print(" = "); Serial.print(r);
+        Serial.println();
+        for (uint8_t s = r; s < sizeof(responseBuffer); s++) {
+            responseBuffer[s] = 0;
+        }
+//        while(Packet *p = drive.nextPacket()) {
+//            if (p->type != MTS::Type::SENSOR) {
+//                Serial.println("Response");
+//                responseFound = true;
+//            } else {
+//                digitalWriteFast(19, digitalReadFast(19) == HIGH ? LOW : HIGH);
+//            }
+//        }
+//        Serial.println();
+//        maintainLeds();
+    }
+#endif
+
     setupGps();
 
     Leds[LED_BOARD].off();
     Leds[LED_RED].off();
     Leds[LED_GREEN].off();
+#ifdef TESTMTS
+    testMTS();
+#endif // TESTMTS
+    uint8_t p = 3;
+    pinMode(p, OUTPUT);
+    int t = 5; // volume
+    float f = 500.0;
+    analogWriteFrequency(p, f);
+    analogWrite(p, t);
+    while (f < 3800.0) {
+        analogWriteFrequency(p, f);
+        analogWrite(p, t);
+//        tone(3, t, 100);
+        f += 300;
+        delay(20);
+    }
+    analogWrite(3, 0);
 }
+#endif // UNIT_TEST
+
+void setupDisplay() {
+    display.setupBrightness(TFT_LITE);
+
+    display.setupVolts(buffer0, adc->getMaxValue(0));
+    uint8_t ch = 0;
+    display.setupChannel(ch++, 8191); // Lambda
+    // Aux2 => Injector Pulse Width
+    display.setupChannel(ch++, MTS10BIT_MAX);
+    // Aux3 => O2; up to ~1.2V
+    display.setupChannel(ch++, 110);
+    // Aux4 => AFM; up to ~4V
+    display.setupChannel(ch++, MTS10BIT_MAX);
+    // Aux1 => ???
+    display.setupChannel(ch++, MTS10BIT_MAX, ST7735_MAGENTA);
+#if PRINT
+    Serial.print("Setup display with ");
+    Serial.print(ch);
+    Serial.println(" channels.");
+#endif // PRINT
+}
+
 
 /**
  * Configure the Leds[] collection
@@ -213,15 +288,12 @@ void timer0_callback(void) {
     adc->startSingleRead(ADC_POT, ADC_0); // also: startSingleDifferential, analogSynchronizedRead, analogSynchronizedReadDifferential
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 // when the measurement finishes, this will be called
 // first: see which pin finished and then save the measurement into the correct buffer
 //uint8_t isrTick = 0;
 void adc0_isr() {
-//    if (isrTick++ % 2) {
-//        Leds[LED_GREEN].on();
-//    } else {
-//        Leds[LED_GREEN].off();
-//    }
 
     uint8_t pin = ADC::sc1a2channelADC0[ADC0_SC1A&ADC_SC1A_CHANNELS]; // the bits 0-4 of ADC0_SC1A have the channel
 
@@ -241,6 +313,7 @@ void adc0_isr() {
         adc->adc0->adcWasInUse = (uint8_t) false;
     }
 }
+#pragma clang diagnostic pop
 
 void setupGps() {
     GPSSERIAL.begin(GPSSERIAL_BAUD);
@@ -248,6 +321,7 @@ void setupGps() {
 
 /******* LOOP *******/
 
+#ifndef UNIT_TEST
 uint32_t lastLoop = millis();
 void loop() {
     uint32_t now = millis();
@@ -262,6 +336,8 @@ void loop() {
     maintainButton();
     display.maintain();
 }
+
+#endif // UNIT_TEST
 
 int32_t previousValue;
 
@@ -302,37 +378,85 @@ void maintainLeds() {
     }
 }
 
-// When a new packet has been found, push parts of it into the display
+
+Packet *p;
+
+// When a packets are available, push parts of it into the display
 // TODO: feed values into drive statistics (avg/min/max/etc)
 void maintainDrive() {
     while(Packet *p = drive.nextPacket()) {
-        // Process the packet by sending it's values to display for processing
-        display.setChannel(0, p->lambda);
-        if (p->channelCount >= 2) {
-            display.setChannel(1, p->channel[1]);
-            display.setChannel(2, p->channel[2]);
-            display.setChannel(3, p->channel[3]);
-//            display.setChannel(4, p->channel[4]);
+        if (p->type == MTS::Type::SENSOR) {
+            if (p->function == MTS::Funtion::NORMAL) {
+                Leds[LED_RED].off();
+                Leds[LED_GREEN].off();
+                analogWrite(3, 0);
+                display.setChannel(0, p->lambda);
+            } else if (p->function != MTS::Funtion::WARMUP_STARTED) {
+//                analogWrite(3, 20);
+                display.setChannel(0, (uint32_t)(p->lambda / 10.0));
+                Leds[LED_RED].on();
+            } else {
+                display.setChannel(0, (uint32_t )(p->lambda / 100.0));
+                Leds[LED_GREEN].on();
+            }
+            // Process the packet by sending it's values to display for processing
+            if (p->channelCount >= 2) {
+                display.setChannel(1, p->channel[1]);
+                display.setChannel(2, p->channel[2]);
+                display.setChannel(3, p->channel[3]);
+                display.setChannel(4, p->channel[0]);
+            }
+        } else {
+#if PRINT
+            Serial.println("Command Response!");
+#endif
         }
     }
     display.setElapsed(drive.elapsedMillis());
 }
 
-
+// Push all available MTS bytes to the drive
+// if that results in packets being decoded, they will be buffered in the Drive packetbuffer!
 void maintainMTS() {
-//    Leds[LED_BOARD].on();
-    // TODO: Move serial input to interrupt timer
-    int incomingAvailable = MTSSERIAL.available();
-    if (incomingAvailable > 0) {
-        Leds[LED_BOARD].on();
-        uint8_t incomingRead = (uint8_t) MTSSERIAL.readBytes((char *) mtsbuffer, (size_t) incomingAvailable);
-        if (incomingRead > 0) {
-            // hand over bytes to packet buffer
-            drive.addBytes((char *) mtsbuffer, incomingRead);
-        }
-        Leds[LED_BOARD].off();
+    while (MTSSERIAL.available()) {
+        uint8_t m = (uint8_t) (MTSSERIAL.read() & 0xFF);
+        drive.encode(m);
     }
 }
+
+#ifdef TESTMTS
+int incoming[] = {0x27, 0x39, 0x00, 0xB2, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x7A, 0xB2, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x7A};
+//                  --    --    --    HH    HH    a0    a0    a1    a1    a2    a2    a3    a3    HH    HH    a0    a0    a1    a1    a2    a2    a3    a3
+void testMTS() {
+    size_t intSize = sizeof(int);
+//    Serial.print("sizeof(int) == "); Serial.println(intSize, DEC);
+//    Serial.print("sizeof(uint8_t) == "); Serial.println(sizeof(uint8_t), DEC);
+//    Serial.print("sizeof(uint16_t) == "); Serial.println(sizeof(uint16_t), DEC);
+    Serial.print("sizeof(Packet) == "); Serial.println(sizeof(Packet), DEC);
+
+//    Serial.println("MTS::Function >");
+//    for (uint8_t f = MTS::Funtion::NORMAL; f <= MTS::Funtion::RESERVED; f++) {
+//        Serial.print(f < 0b100 ? f < 0b10 ? "0b00" : "0b0" : "0b"); Serial.println(f, BIN);
+//    }
+//    Serial.println();
+
+    // Feed predefined byte sequences to verify packet decoding
+    for(int i = 0; i < sizeof(incoming) / intSize; i++) {
+        uint8_t in = (uint8_t) (incoming[i] & 0xFF);
+        Serial.print(i < 10 ? "[0" : "["); Serial.print(i); Serial.print("] ");
+        Serial.print(in > 0xF ? "0x" : "0x0");
+        Serial.print(in, HEX); Serial.print(" > ");
+
+        drive.encode(in);
+
+        if (Packet *p = drive.nextPacket()) {
+            Serial.print("FOUND PACKET >> ");
+            Serial.print(p->channelCount); Serial.println(" channels");
+        }
+    }
+    Serial.println("Finished testMTS");
+}
+#endif // TESTMTS
 
 long lat, lon;
 unsigned long fix_age, time, date, speed, course;
@@ -345,11 +469,20 @@ void maintainGps() {
     while (GPSSERIAL.available()) {
         int g = GPSSERIAL.read();
         if (gps.encode(g)) {
+
+            // TODO: Provide bearing and velocity to Display
+
+            // TODO: Forward GPS details to Drive session
+
             // Packet decoded.
             // statistics
             gps.stats(&chars, &sentences, &failed_checksum);
+            // TODO: accumulate rolling count of failed checksums
+
             // retrieves +/- lat/long in 100000ths of a degree
             gps.get_position(&lat, &lon, &fix_age);
+            // TODO: Notify display if fix_age is too old
+
             // time in hhmmsscc, date in ddmmyy
 //                gps.get_datetime(&date, &time, &fix_age);
             // returns speed in 100ths of a knot

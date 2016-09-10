@@ -17,7 +17,7 @@
 class Drive {
 public:
     Drive();
-    void addBytes(char *buffer, uint8_t len);
+    boolean encode(uint8_t value);
     Packet *nextPacket();
 
     uint32_t elapsedMillis();
@@ -29,8 +29,6 @@ private:
     uint32_t _durationSeconds;
     uint32_t _durationMicros;
     void _incrementNanos(uint8_t packetCount);
-
-    void _debugPacket();
 };
 
 
