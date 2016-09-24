@@ -51,7 +51,8 @@ void maintainDrive(); // Detect newly arrived packets
 // https://forum.pjrc.com/threads/25532-ADC-library-update-now-with-support-for-Teensy-3-1
 
 // and IntervalTimer
-#include <IntervalTimer.h>
+//#include <IntervalTimer.h>
+// Not currently used.
 
 #define ADC_RESOLUTION 12
 #define ADC_POT A7 // (21) ADC0_SE7B

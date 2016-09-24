@@ -9,3 +9,4 @@ install_manifest.txt
 CTestTestfile.cmake
 workspace.xml
 .piolibdeps
+.DS_Store
