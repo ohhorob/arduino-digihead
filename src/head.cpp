@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Display.h>
+#include "SPI.h"
 
 #define PRINT false
 //#define TESTMTS
